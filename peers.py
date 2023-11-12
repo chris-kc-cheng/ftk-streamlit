@@ -103,4 +103,4 @@ with category_tabs[4]:
 st.header('Risk')
 st.write(summary.style.highlight_max(color='lightgreen'))
 
-st.markdown(open('streamlit/data/signature.md').read())
+st.markdown(open('data/signature.md').read())
