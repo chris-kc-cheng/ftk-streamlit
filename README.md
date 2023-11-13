@@ -1,16 +1,15 @@
-# ftk-streamlit
+#Streamlit web apps using Financial Toolkit
 
-Study of Greeks and payoffs of different option strategy\
-https://ftk-options.streamlit.app/
+Streamlit is a framework that turns Python scripts into interactive web apps. 
 
-Fama-French Model\
-https://ftk-factors.streamlit.app/
+In this repository, I have developed some web apps showing the most common use cases in investment management that utilizes the Financial Toolkit.
 
-Portfolio Optimization\
-https://ftk-portfolio-optimization.streamlit.app/
+| App | Description |
+|-----|-------------|
+| [Index Montior](https://ftk-indices.streamlit.app/) | Tables and charts of asset class returns measured in different currency terms and time horizons.
+| [Factor Analysis](https://ftk-factors.streamlit.app/) | Analyzing factor loading of a portfolio using Fama-French model. |
+| [Portfolio Optimization](https://ftk-portfolio-optimization.streamlit.app/) | Comparing risk reward and risk contribution of various weighting schemes. |
+| [Peer Group Analysis](https://ftk-peers.streamlit.app/) | Comparing fund performance and risk measures against benchmark and peer group. |
+| [Option Pricing & Greeks](https://ftk-options.streamlit.app/) | Visualizing payoff and Greeks of various option strategies. |
 
-World Indices Monitor\
-https://ftk-indices.streamlit.app/
-
-Peer Group Analysis\
-https://ftk-peers.streamlit.app/
+The source code is hosted on GitHub at: https://github.com/chris-kc-cheng/ftk-streamlit.
