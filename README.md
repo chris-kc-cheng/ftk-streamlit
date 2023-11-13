@@ -1,4 +1,4 @@
-#Streamlit web apps using Financial Toolkit
+# Streamlit web apps using Financial Toolkit
 
 Streamlit is a framework that turns Python scripts into interactive web apps. 
 
