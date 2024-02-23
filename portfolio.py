@@ -99,7 +99,7 @@ if len(assets) > 1:
                 axis=1, keys=['Return', 'Volatility']).reset_index()
         )
             .mark_circle()
-            .encode(y='Return', x='Volatility', color=alt.Color('index',
+            .encode(y='Return', x='Volatility', color=alt.Color('Ticker',
                                                                 legend=alt.Legend(
                                                                     orient='bottom',))
                     ))
