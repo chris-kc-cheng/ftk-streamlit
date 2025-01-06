@@ -25,7 +25,7 @@ def format_table(s):
     return tbl.style.format('{0:.2%}')    
 
 # Pre-process the data
-params = st.experimental_get_query_params()
+params = st.query_params
 url = "/?fund=PRCOX&fund=GQEFX&fund=STSEX&fund=NUESX&fund=VTCLX&fund=CAPEX&fund=USBOX&fund=VPMCX&fund=JDEAX&fund=DFUSX&fund=GALLX&benchmark=%5ESP500TR"
 
 st.title('Peer Group Analysis')
@@ -38,8 +38,7 @@ if 'fund' not in params or 'benchmark' not in params or len(params['fund']) < 1 
     """, unsafe_allow_html=True)
     st.stop()
 
-
-tickers = params['fund']
+tickers = params.get_all('fund')
 tickers.extend(params['benchmark'])
 
 price = get_price(tickers)
