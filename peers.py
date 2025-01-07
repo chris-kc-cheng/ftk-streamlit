@@ -39,7 +39,7 @@ if 'fund' not in params or 'benchmark' not in params or len(params['fund']) < 1 
     st.stop()
 
 tickers = params.get_all('fund')
-tickers.extend(params['benchmark'])
+tickers.extend(params.get_all('benchmark'))
 
 price = get_price(tickers)
 periods = price.resample('M').last().to_period()
