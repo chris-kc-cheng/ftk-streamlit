@@ -8,7 +8,7 @@ import toolkit as ftk
 @st.cache_data(ttl=3600)
 def get_data():
     data = pd.read_csv('data/indices.csv', index_col=0)
-    px = ftk.get_yahoo_bulk(data.index, '5y')
+    px = ftk.get_yahoo_bulk(data.index, '2y')
     return data, px
 
 
