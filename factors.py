@@ -15,11 +15,12 @@ def get_factors(dataset, mom):
 
 @st.cache_data(ttl=60)
 def get_price(ticker):
-    return ftk.price_to_return(ftk.get_yahoo(ticker))
+    return ftk.price_to_return(ftk.get_yahoo(ticker)).asfreq("B")
 
 
 # Return (portfolio, factors, rfr)
 def resample(portfolio, factors):
+    print("******", portfolio.index.freqstr, factors.index.freqstr)
     if ftk.periodicity(portfolio) > ftk.periodicity(factors):
         portfolio = portfolio.resample(
             factors.index.freqstr).aggregate(ftk.compound_return)
