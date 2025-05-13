@@ -63,8 +63,8 @@ if base != 'Local':
     foreign_fx = px.apply(lambda column: getFX(column.name))
     domestic_fx = px.loc[:, f'{base}=X']
     
-    adj_fx = px.filter(regex='=X$', axis=1).apply(lambda x: ftk.convertFX(domestic_fx, x, usd))
-    adj_px = px.filter(regex='.*(?<!=X)$', axis=1).apply(lambda x: ftk.convertFX(x, foreign_fx[x.name], domestic_fx))
+    adj_fx = px.filter(regex='=X$', axis=1).apply(lambda x: ftk.convert_fx(domestic_fx, x, usd))
+    adj_px = px.filter(regex='.*(?<!=X)$', axis=1).apply(lambda x: ftk.convert_fx(x, foreign_fx[x.name], domestic_fx))
 
     adjusted = pd.concat([adj_fx, adj_px], axis=1)
 
