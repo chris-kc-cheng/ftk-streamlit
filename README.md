@@ -6,6 +6,8 @@ In this repository, I have created several web apps that demonstrate common use 
 
 ## App 6: Asset Liability Management
 
+The web app uses the Cox–Ingersoll–Ross (CIR) model to  generate interest-rate scenarios that evolve over time while reverting toward a long-term level.
+
 <a href="https://ftk-alm.streamlit.app/">
     <img alt='Asset Liability Management' src='images/alm.png' style='border: none' />
     👆 Click the image above to launch the web app.

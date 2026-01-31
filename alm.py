@@ -4,7 +4,8 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 
-def cir(years: float, a: float, b: float, sigma: float, init: float, scenarios: int=1, steps_per_year: int=12) -> tuple[pd.DataFrame, pd.DataFrame]:
+
+def cir(years: float, a: float, b: float, sigma: float, init: float, scenarios: int = 1, steps_per_year: int = 12) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Cox-Ingersoll-Ross model for interest rate simulation
 
     Parameters
@@ -47,7 +48,7 @@ def cir(years: float, a: float, b: float, sigma: float, init: float, scenarios: 
         _B = (2*(math.exp(h*ttm)-1))/(2*h + (h+a)*(math.exp(h*ttm)-1))
         _P = _A*np.exp(-_B*r)
         return _P
-    
+
     prices[0] = price(years, init)
 
     for step in range(1, n):
@@ -81,7 +82,7 @@ with st.sidebar:
 st.title("Asset Liability Management")
 
 rates, prices = cir(years=years, a=a, b=b, sigma=sigma, init=r0,
-              scenarios=scenarios, steps_per_year=steps_per_year)
+                    scenarios=scenarios, steps_per_year=steps_per_year)
 
 st.header("Cox-Ingersoll-Ross Model")
 st.line_chart(rates, x_label="Time", y_label="Rates",)
