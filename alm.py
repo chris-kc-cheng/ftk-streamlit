@@ -57,8 +57,8 @@ def cir(years: float, a: float, b: float, sigma: float, init: float, scenarios: 
         rates[step] = abs(r_t + d_r_t)
         prices[step] = price(years-step*dt, rates[step])
 
-    rates = pd.DataFrame(data=np.expm1(rates), index=range(n))
-    prices = pd.DataFrame(data=prices, index=range(n))
+    rates = pd.DataFrame(data=np.expm1(rates), index=np.arange(n) * dt)
+    prices = pd.DataFrame(data=prices, index=np.arange(n) * dt)
     return rates, prices
 
 
@@ -79,13 +79,18 @@ with st.sidebar:
     r0 = st.slider('Initial rate', min_value=0.,
                    max_value=0.1, value=0.02, step=0.001, format='percent')
 
-st.title("Asset Liability Management")
+st.title('Asset Liability Management')
 
 rates, prices = cir(years=years, a=a, b=b, sigma=sigma, init=r0,
                     scenarios=scenarios, steps_per_year=steps_per_year)
 
-st.header("Cox-Ingersoll-Ross Model")
-st.line_chart(rates, x_label="Time", y_label="Rates",)
-st.line_chart(prices, x_label="Time", y_label="Bond Prices",)
+st.header('Cox-Ingersoll-Ross Model')
+
+st.altair_chart(alt.Chart(rates.reset_index().melt(id_vars='index', var_name='c', value_name='y')).mark_line().encode(
+    x=alt.X('index', axis=alt.Axis(tickMinStep=1, title='Time')),
+    y=alt.Y('y', axis=alt.Axis(title='Rates', format='%')),
+    color=alt.Color('c', legend=None)
+), use_container_width=True)
+st.line_chart(prices, x_label='Time', y_label='Bond Prices')
 
 st.markdown(open('data/signature.md').read())
