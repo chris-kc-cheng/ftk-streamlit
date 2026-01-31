@@ -1,1 +1,1 @@
-Visit my [GitHub](https://github.com/chris-kc-cheng/financial-toolkit) repository for source code and more apps like this.
+Visit my [GitHub](https://github.com/chris-kc-cheng/ftk-streamlit) repository for source code and more apps like this.

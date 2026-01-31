@@ -30,13 +30,13 @@ with st.sidebar:
             st.session_state.data = pd.DataFrame(s['instruments'])
 
     vol = st.slider('Volatility', min_value=0.01,
-                    max_value=1., value=0.2, format='%f')
+                    max_value=1., value=0.2, format='percent')
     time = st.slider('Time to expiration', min_value=0.01,
-                     max_value=1., value=0.25, format='%f')
+                     max_value=1., value=0.25)
     rate = st.slider('Risk-free rate', min_value=0.,
-                     max_value=1., value=0.05, format='%f')
+                     max_value=1., value=0.05, format='percent')
     dvd = st.slider('Dividend yield', min_value=0.,
-                    max_value=1., value=0., format='%f')
+                    max_value=1., value=0., format='percent')
 
     entry = st.slider('Entry Point', min_value=0,
                       max_value=100, value=50, format='%f')
