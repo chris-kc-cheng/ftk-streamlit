@@ -1,0 +1,8 @@
+[theme]
+primaryColor = "darkcyan"
+textColor = "darkslategray"
+font = "sans serif"
+
+[theme.sidebar]
+backgroundColor="ghostWhite"
+secondaryBackgroundColor="lightcyan"

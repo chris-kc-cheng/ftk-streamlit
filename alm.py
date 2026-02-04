@@ -64,6 +64,7 @@ def cir(years: float, a: float, b: float, sigma: float, init: float, scenarios: 
 
 with st.sidebar:
 
+    st.markdown("**CIR Model Parameters**")
     scenarios = st.slider('Scenarios', min_value=1,
                           max_value=1000, value=100)
     years = st.slider('Years', min_value=0.25,
@@ -78,6 +79,14 @@ with st.sidebar:
                       max_value=0.1, value=0.01, step=0.001, format='percent')
     r0 = st.slider('Initial rate', min_value=0.,
                    max_value=0.1, value=0.02, step=0.001, format='percent')
+    
+    st.markdown("---")    
+
+    asset = st.slider('Cash in hand', min_value=0,
+                          max_value=10000000, step=250000, value=750000, format="dollar")
+    liability = st.slider('Liability', min_value=0,
+                          max_value=10000000, step=250000, value=1000000, format="dollar")
+
 
 st.title('Asset Liability Management')
 
