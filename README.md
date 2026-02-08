@@ -4,6 +4,8 @@
 
 In this repository, I have created several web apps that demonstrate common use cases in investment management, leveraging the [Financial Toolkit](https://github.com/chris-kc-cheng/financial-toolkit).
 
+https://terminal.streamlit.app/
+
 ## App 6: Asset Liability Management
 
 The web app uses the Cox–Ingersoll–Ross (CIR) model to  generate interest-rate scenarios that evolve over time while reverting toward a long-term level.
