@@ -114,7 +114,6 @@ for i, group in enumerate(groups):
                 st.altair_chart(c, use_container_width=True)
 
         st.dataframe(t,
-                    height=1000,
                     hide_index=True,
                     column_order=['flag', 'Name', 'MTD',
                                 'QTD', 'YTD', 'Last', 'As of', 'chart'],
