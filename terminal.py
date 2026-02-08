@@ -3,7 +3,8 @@ import streamlit as st
 pages = {
     "Market": [
         st.Page("indices.py", title="Equity"),
-        st.Page("yield.py", title="Fixed Income")
+        st.Page("yield.py", title="Fixed Income"),
+        st.Page("economic.py", title="Economic Indicators")
     ],
     "Analysis": [
         st.Page("factors.py", title="Factor"),
