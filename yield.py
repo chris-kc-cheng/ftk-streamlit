@@ -26,7 +26,7 @@ dates = sorted(yield_ca['date'].unique())
 with st.sidebar:
 
     min, max = st.select_slider(
-        'As of',
+        'Date range',
         options=dates,
         value = (
             dates[0],
@@ -38,13 +38,18 @@ with st.sidebar:
 df = yield_ca[(yield_ca['date'] == min) | (yield_ca['date'] == max)]
 df['date'] = df['date'].dt.strftime('%Y-%m-%d')
 
-# Selection
-selection = alt.selection_multi(fields=['Maturity'])
+st.title('Yield Curve')
 
-base = alt.Chart(df).mark_line().encode(
+curve = alt.Chart(df).mark_line().encode(
     x='Maturity',
     y='Bond Yield',
     color=alt.Color('date', scale=alt.Scale(domain=[df['date'].iloc[1], df['date'].iloc[0]]), legend=alt.Legend(title='Dates', orient='top'))
 )
 
-st.altair_chart(base, use_container_width=True)
+history = alt.Chart(yield_ca[yield_ca['date'].between(min, max)]).mark_line().encode(
+    x='date',
+    y='Bond Yield',
+    color='Maturity'
+)
+
+st.altair_chart(curve & history)
