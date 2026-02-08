@@ -4,10 +4,11 @@
 
 In this repository, I have created several web apps that demonstrate common use cases in investment management, leveraging the [Financial Toolkit](https://github.com/chris-kc-cheng/financial-toolkit).
 
-Click the link below to open the web app — a lightweight alternative to Bloomberg.
+Click the `Play` button below to launch the web app — a lightweight alternative to Bloomberg.
 
-https://terminal.streamlit.app/
-
+<a href="https://terminal.streamlit.app/">
+    <img src='https://gist.githubusercontent.com/cxmeel/0dbc95191f239b631c3874f4ccf114e2/raw/play.svg' alt='Play' style='border: none;' />
+</a>
 
 ## App 8: Yield Curve
 
