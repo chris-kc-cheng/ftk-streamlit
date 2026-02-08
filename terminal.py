@@ -7,6 +7,7 @@ pages = {
         st.Page("economic.py", title="Economic Indicators")
     ],
     "Analysis": [
+        st.Page("portfolio.py", title="Portfolio"),
         st.Page("factors.py", title="Factor"),
         st.Page("peers.py", title="Peer Group"),
     ],
