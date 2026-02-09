@@ -4,12 +4,25 @@ import numpy as np
 import pandas as pd
 import toolkit as ftk
 
-# Data in wide format
+
 @st.cache_data(ttl=3600)
-def get_data(dataset: str):
-    
-    m = 100 # Periods
-    n = 10 # Categories
+def get_data(dataset: str) -> pd.DataFrame:
+    """Load a dataset
+
+    Parameters
+    ----------
+    dataset : str
+        Name of the dataset
+
+    Returns
+    -------
+    pd.DataFrame
+        Index is a PeriodIndex named `Date`
+        Column name is `Category`
+    """
+
+    m = 120  # Periods
+    n = 10  # Categories
     df = pd.DataFrame(
         np.random.randn(m, n) / 10,
         index=pd.period_range(end=pd.Timestamp.today(), periods=m, freq='M'),
@@ -17,7 +30,7 @@ def get_data(dataset: str):
     )
     df.index.name = 'Date'
     df.columns.name = 'Category'
-    
+
     match dataset:
         case 'Asset Classes':
             tickers = {
@@ -35,13 +48,15 @@ def get_data(dataset: str):
                 'IGF': 'Infra',
                 'IBTU.L': 'Cash'
             }
-            df = ftk.get_yahoo_bulk(tickers.keys()).groupby(pd.Grouper(freq='ME')).last().pct_change().dropna()
+            df = ftk.get_yahoo_bulk(tickers.keys()).groupby(
+                pd.Grouper(freq='ME')).last().pct_change().dropna()
             df = df.rename(columns=tickers)
             df.index = df.index.to_period('M')
             df.columns.name = 'Category'
 
         case 'Hedge Fund Indexes':
-            df = ftk.get_withintelligence_bulk([11469, 11475, 11470, 11471, 11420, 11473, 11474, 11454, 11486])
+            df = ftk.get_withintelligence_bulk(
+                [11469, 11475, 11470, 11471, 11420, 11473, 11474, 11454, 11486])
             df = df.rename(columns={
                 'With Intelligence Hedge Fund Index': 'HF',
                 'With Intelligence Relative Value Hedge Fund Index': 'RV',
@@ -61,25 +76,30 @@ def get_data(dataset: str):
 
         case _:
             pass
-    
+
     return df
+
 
 category = 'Zero'
 
 with st.sidebar:
 
-    dataset = st.selectbox('Data', ['Asset Classes', 'Hedge Fund Indexes', 'Random'], 0)
+    dataset = st.selectbox(
+        'Data', ['Asset Classes', 'Hedge Fund Indexes', 'Random'], 0)
     raw = get_data(dataset)
     data = raw.copy()
 
-    freq = st.segmented_control('Period', ['Monthly', 'Quarterly', 'Annually'], default=['Annually'])
+    freq = st.segmented_control(
+        'Period', ['Monthly', 'Quarterly', 'Annually'], default=['Annually'])
 
     categories = ['Zero']
     categories.extend(data.columns)
-    display = st.segmented_control('Rank', ['Absolute', 'Relative'], default='Absolute')
+    display = st.segmented_control(
+        'Rank', ['Absolute', 'Relative'], default='Absolute')
     if display == 'Relative':
         category = st.selectbox('Relative to', categories, 0)
-    color = st.segmented_control('Color by', ['Return', 'Category'], default='Return')
+    color = st.segmented_control(
+        'Color by', ['Return', 'Category'], default='Return')
     decimal = st.segmented_control('Decimal places', [0, 1, 2], default=1)
     if decimal is None:
         decimal = 0
@@ -90,7 +110,8 @@ freq_options = {
     'Quarterly': ('QE', '%Y Q%q'),
     'Annually': ('YE', '%Y')
 }
-data = data.groupby(pd.Grouper(freq = freq_options[freq][0])).apply(lambda r: np.expm1(np.log1p(r).sum()))
+data = data.groupby(pd.Grouper(freq='YE' if freq is None else freq_options[freq][0])).apply(
+    lambda r: np.expm1(np.log1p(r).sum()))
 
 # Reshape to long format
 data = data.stack().to_frame('Return')
@@ -112,12 +133,16 @@ data['Rank'] = np.nan
 pos = data['Rel'] >= 0
 neg = data['Rel'] < 0
 if display == 'Absolute':
-    data['Rank'] = data.groupby('Date')['Return'].rank(ascending=True, method='dense')
+    data['Rank'] = data.groupby('Date')['Return'].rank(
+        ascending=True, method='dense')
 else:
-    data.loc[pos, 'Rank'] = data[pos].groupby('Date')['Rel'].rank(ascending=True, method='dense')
-    data.loc[neg, 'Rank'] = -data[neg].groupby('Date')['Rel'].rank(ascending=False, method='dense')
+    data.loc[pos, 'Rank'] = data[pos].groupby(
+        'Date')['Rel'].rank(ascending=True, method='dense')
+    data.loc[neg, 'Rank'] = - \
+        data[neg].groupby('Date')['Rel'].rank(ascending=False, method='dense')
 data = data.reset_index()
-data['Date'] = data['Date'].dt.strftime(freq_options[freq][1])
+data['Date'] = data['Date'].dt.strftime(
+    '%Y' if freq is None else freq_options[freq][1])
 
 height = (data['Rank'].max() - data['Rank'].min()) * 30 + 150
 width = data['Date'].nunique() * 60 + 100
@@ -131,10 +156,11 @@ scale = alt.Scale(
 st.title('Periodic Table')
 
 base = alt.Chart(data)
-heatmap  = base.mark_rect().encode(
+heatmap = base.mark_rect().encode(
     x="Date:N",
     y=alt.Y('Rank:O', sort='descending', axis=None),
-    color=alt.Color('Return:Q', scale=scale, title='Return', legend=alt.Legend(format='.0%')) if color == 'Return' else alt.Color('Category:N', title='Category'),
+    color=alt.Color('Return:Q', scale=scale, title='Return', legend=alt.Legend(
+        format='.0%')) if color == 'Return' else alt.Color('Category:N', title='Category'),
 ).properties(
     height=height,
     width=width
@@ -153,4 +179,4 @@ chart = heatmap + text1 + text2
 st.altair_chart(chart, width='content')
 
 with st.expander('Data', expanded=False):
-    st.write(raw)
+    st.write(raw.style.format("{:.2%}"))

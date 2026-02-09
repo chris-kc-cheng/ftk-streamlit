@@ -10,6 +10,14 @@ Click the `Play` button below to launch the web app — a lightweight alternativ
     <img src='https://gist.githubusercontent.com/cxmeel/0dbc95191f239b631c3874f4ccf114e2/raw/play.svg' alt='Play' style='border: none;' />
 </a>
 
+## App 9: Periodic Table
+
+This web app displays a periodic-table-style summary of returns across different asset classes and hedge fund strategies. Users can customize the table by selecting different time horizons, adjusting conditional formatting, changing the order, and choosing the reference point.
+
+<a href="https://terminal.streamlit.app/heatmap">
+    <img alt='Yield Curve' src='images/heatmap.gif' style='border: none' />
+</a>
+
 ## App 8: Yield Curve
 
 This web app shows how the Canadian and US yield curves move over time.
