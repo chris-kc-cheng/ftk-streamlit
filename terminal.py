@@ -4,7 +4,8 @@ pages = {
     "Market": [
         st.Page("indices.py", title="Equity"),
         st.Page("yield.py", title="Fixed Income"),
-        st.Page("economic.py", title="Economic Indicators")
+        st.Page("economic.py", title="Economic Indicators"),
+        st.Page("heatmap.py", title="Heat Map")
     ],
     "Analysis": [
         st.Page("portfolio.py", title="Portfolio"),
