@@ -124,7 +124,7 @@ with st.sidebar:
     data = raw.copy()
 
     freq = st.segmented_control(
-        'Period', ['Monthly', 'Quarterly', 'Annually'], default=['Annually'])
+        'Period', ['Monthly', 'Quarterly', 'Annually', 'Trailing'], default=['Annually'])
 
     categories = ['Zero']
     categories.extend(data.columns)
@@ -137,6 +137,7 @@ with st.sidebar:
     decimal = st.segmented_control('Decimal places', [0, 1, 2], default=1)
     if decimal is None:
         decimal = 0
+    annualize = st.toggle('Annualize', value=True)
 
 # Aggregate
 freq_options = {
@@ -144,8 +145,33 @@ freq_options = {
     'Quarterly': ('QE', '%Y Q%q'),
     'Annually': ('YE', '%Y')
 }
-data = data.groupby(pd.Grouper(freq='YE' if freq is None else freq_options[freq][0])).apply(
-    lambda r: np.expm1(np.log1p(r).sum()))
+
+horizons = {
+    '1 Mo': 1,
+    '3 Mo': 3,
+    '6 Mo': 6,
+    '1 Yr': 12,
+    '2 Yr': 24,
+    '3 Yr': 36,
+    '4 Yr': 48,
+    '5 Yr': 60,
+    '6 Yr': 72,
+    '7 Yr': 84,
+    '8 Yr': 96,
+    '9 Yr': 108,
+    '10 Yr': 120
+}
+
+if freq in freq_options:
+    data = data.groupby(pd.Grouper(freq=freq_options[freq][0])).apply(
+        lambda r: np.expm1(np.log1p(r).sum()))
+else:
+    data = pd.DataFrame({
+        horizon: np.expm1(np.log1p(data.tail(months)).sum()
+                          * 12 / (months if annualize and months > 12 else 12))
+        for horizon, months in horizons.items() if len(data) >= months
+    }).T
+    data.index.name = 'Date'
 
 # Reshape to long format
 data = data.stack().to_frame('Return')
@@ -175,12 +201,12 @@ else:
     data.loc[neg, 'Rank'] = - \
         data[neg].groupby('Date')['Rel'].rank(ascending=False, method='dense')
 data = data.reset_index()
-data['Date'] = data['Date'].dt.strftime(
-    '%Y' if freq is None else freq_options[freq][1])
+if freq in freq_options:
+    data['Date'] = data['Date'].dt.strftime(freq_options[freq][1])
 
+# Chart Formatting
 height = (data['Rank'].max() - data['Rank'].min()) * 30 + 150
 width = data['Date'].nunique() * 60 + 100
-
 rng = max(abs(data['Return'].max()), abs(data['Return'].min()))
 scale = alt.Scale(
     domain=[-rng, 0, rng],
@@ -189,6 +215,7 @@ scale = alt.Scale(
 
 st.title('Periodic Table')
 
+# Chart
 base = alt.Chart(data)
 heatmap = base.mark_rect().encode(
     x="Date:N",
