@@ -54,6 +54,25 @@ def get_data(dataset: str) -> pd.DataFrame:
             df.index = df.index.to_period('M')
             df.columns.name = 'Category'
 
+        case 'MSCI ACWI Sectors':
+            sectors = {
+                892400: 'ACWI',
+                106745: 'Energy',
+                106747: 'Industrials',
+                106746: 'Materials',
+                106749: 'Con. Stap.',
+                106748: 'Con. Disc.',
+                106751: 'Financials',
+                106750: 'Health',
+                106753: 'Comm',
+                106752: 'Tech',
+                106754: 'Util',
+                132082: 'R/E'
+            }
+            df = ftk.get_msci(sectors.keys(), variant='GRTR').dropna()
+            df.columns = sectors.values()
+            df.columns.name = 'Category'
+
         case 'MSCI ACWI Factors':
             factors = {
                 892400: 'ACWI',
@@ -100,7 +119,7 @@ category = 'Zero'
 with st.sidebar:
 
     dataset = st.selectbox(
-        'Data', ['Asset Classes', 'MSCI ACWI Factors', 'Hedge Fund Indexes', 'Random'], 0)
+        'Data', ['Asset Classes', 'MSCI ACWI Sectors', 'MSCI ACWI Factors', 'Hedge Fund Indexes', 'Random'], 0)
     raw = get_data(dataset)
     data = raw.copy()
 
