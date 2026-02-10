@@ -54,6 +54,21 @@ def get_data(dataset: str) -> pd.DataFrame:
             df.index = df.index.to_period('M')
             df.columns.name = 'Category'
 
+        case 'MSCI ACWI Factors':
+            factors = {
+                892400: 'ACWI',
+                700404: 'Volatility',
+                701633: 'Yield',
+                702786: 'Quality',
+                703026: 'Momentum',
+                706767: 'Value',
+                129859: 'Size',
+                729745: 'Growth'
+            }
+            df = ftk.get_msci(factors.keys(), variant='GRTR').dropna()
+            df.columns = factors.values()
+            df.columns.name = 'Category'
+
         case 'Hedge Fund Indexes':
             df = ftk.get_withintelligence_bulk(
                 [11469, 11475, 11470, 11471, 11420, 11473, 11474, 11454, 11486])
@@ -85,7 +100,7 @@ category = 'Zero'
 with st.sidebar:
 
     dataset = st.selectbox(
-        'Data', ['Asset Classes', 'Hedge Fund Indexes', 'Random'], 0)
+        'Data', ['Asset Classes', 'MSCI ACWI Factors', 'Hedge Fund Indexes', 'Random'], 0)
     raw = get_data(dataset)
     data = raw.copy()
 
