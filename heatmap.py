@@ -31,6 +31,8 @@ def get_data(dataset: str) -> pd.DataFrame:
     df.index.name = 'Date'
     df.columns.name = 'Category'
 
+    desc = 'Normally distributed random returns generated for testing purpose.'
+
     match dataset:
         case 'Asset Classes':
             tickers = {
@@ -54,6 +56,8 @@ def get_data(dataset: str) -> pd.DataFrame:
             df.index = df.index.to_period('M')
             df.columns.name = 'Category'
 
+            desc = 'The performance of major asset classes, represented using ETFs as proxies.'
+
         case 'MSCI ACWI Sectors':
             sectors = {
                 892400: 'ACWI',
@@ -73,6 +77,8 @@ def get_data(dataset: str) -> pd.DataFrame:
             df.columns = sectors.values()
             df.columns.name = 'Category'
 
+            desc = 'Returns for all 11 MSCI ACWI sectors.'
+
         case 'MSCI ACWI Factors':
             factors = {
                 892400: 'ACWI',
@@ -87,6 +93,8 @@ def get_data(dataset: str) -> pd.DataFrame:
             df = ftk.get_msci(factors.keys(), variant='GRTR').dropna()
             df.columns = factors.values()
             df.columns.name = 'Category'
+
+            desc = 'Returns for the major MSCI ACWI factors.'
 
         case 'Hedge Fund Indexes':
             df = ftk.get_withintelligence_bulk(
@@ -108,10 +116,12 @@ def get_data(dataset: str) -> pd.DataFrame:
             df = df.dropna()
             df = df[~df.index.duplicated(keep='first')]
 
+            desc = 'Main strategy returns from the WithIntelligence Hedge Fund Index.'
+
         case _:
             pass
 
-    return df
+    return df, desc
 
 
 category = 'Zero'
@@ -120,7 +130,7 @@ with st.sidebar:
 
     dataset = st.selectbox(
         'Data', ['Asset Classes', 'MSCI ACWI Sectors', 'MSCI ACWI Factors', 'Hedge Fund Indexes', 'Random'], 0)
-    raw = get_data(dataset)
+    raw, desc = get_data(dataset)
     data = raw.copy()
 
     freq = st.segmented_control(
@@ -214,11 +224,13 @@ scale = alt.Scale(
 )
 
 st.title('Periodic Table')
+st.markdown(f'### {dataset}')
+st.markdown(desc)
 
 # Chart
 base = alt.Chart(data)
 heatmap = base.mark_rect().encode(
-    x="Date:N",
+    x=alt.X('Date:N', axis=alt.Axis(title=None)),
     y=alt.Y('Rank:O', sort='descending', axis=None),
     color=alt.Color('Return:Q', scale=scale, title='Return', legend=alt.Legend(
         format='.0%')) if color == 'Return' else alt.Color('Category:N', title='Category'),
@@ -238,6 +250,7 @@ text2 = base.mark_text(dy=7).encode(
 )
 chart = heatmap + text1 + text2
 st.altair_chart(chart, width='content')
+st.write('Data as of:', raw.index[-1])
 
 with st.expander('Data', expanded=False):
     st.write(raw.style.format("{:.2%}"))
