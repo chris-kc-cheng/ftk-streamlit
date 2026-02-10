@@ -213,6 +213,8 @@ else:
 data = data.reset_index()
 if freq in freq_options:
     data['Date'] = data['Date'].dt.strftime(freq_options[freq][1])
+else:
+    data['Months'] = data['Date'].map(horizons)
 
 # Chart Formatting
 height = (data['Rank'].max() - data['Rank'].min()) * 30 + 150
@@ -229,9 +231,10 @@ st.markdown(desc)
 
 # Chart
 base = alt.Chart(data)
+xaxis = alt.X('Date:N', axis=alt.Axis(title=None)) if freq in freq_options else alt.X('Date', axis=alt.Axis(title=None), sort=alt.SortField('Months:O', order='ascending'))
 heatmap = base.mark_rect().encode(
-    x=alt.X('Date:N', axis=alt.Axis(title=None)),
-    y=alt.Y('Rank:O', sort='descending', axis=None),
+    x=xaxis,
+    y=alt.Y('Rank:O', axis=None, sort='descending'),
     color=alt.Color('Return:Q', scale=scale, title='Return', legend=alt.Legend(
         format='.0%')) if color == 'Return' else alt.Color('Category:N', title='Category'),
 ).properties(
@@ -239,12 +242,12 @@ heatmap = base.mark_rect().encode(
     width=width
 )
 text1 = base.mark_text(dy=-7, fontWeight='bold').encode(
-    x='Date:N',
+    x=xaxis,
     y=alt.Y('Rank:O', sort='descending', axis=None),
     text='Category:N'
 )
 text2 = base.mark_text(dy=7).encode(
-    x='Date:N',
+    x=xaxis,
     y=alt.Y('Rank:O', sort='descending', axis=None),
     text='Percent:N'
 )
