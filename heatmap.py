@@ -58,6 +58,42 @@ def get_data(dataset: str) -> pd.DataFrame:
 
             desc = 'The performance of major asset classes, represented using ETFs as proxies.'
 
+        case 'MSCI Regions/Countries':
+            sectors = {
+                892400: 'ACWI',
+                    990100: 'World',
+                    990300: 'EAFE',
+                    990500: 'Europe',
+                    302000: 'APAC',
+                    891800: 'EM',
+                    122489: 'G. Dragon',
+                    718708: 'China A',
+                    984000: 'USA',
+                    912400: 'Canada',
+                    939200: 'Japan',
+                    935600: 'India',
+                    934400: 'Hong Kong',
+                    903600: 'Australia',
+                    982600: 'UK',
+                    938000: 'Italy',
+                    928000: 'Germany',
+                    925000: 'France',
+                    105767: 'Indonesia',
+                    941000: 'Korea',
+                    979200: 'Turkey',
+                    705405: 'Saudi',
+                    907600: 'Brazil',
+                    848400: 'Mexico',
+                    971000: 'S. Africa',
+                    903200: 'Argentina'
+            }
+            df = ftk.get_msci(sectors.keys(), variant='GRTR').dropna()
+            df.columns = sectors.values()
+            df.columns.name = 'Category'
+
+            desc = 'Returns for all 11 MSCI ACWI sectors.'
+
+
         case 'MSCI ACWI Sectors':
             sectors = {
                 892400: 'ACWI',
@@ -117,7 +153,7 @@ def get_data(dataset: str) -> pd.DataFrame:
             df = df.dropna()
             df = df[~df.index.duplicated(keep='first')]
 
-            desc = 'Main strategy returns from the WithIntelligence Hedge Fund Index.'            
+            desc = 'Global strategy returns from the WithIntelligence Hedge Fund Index.'            
 
         case 'Hedge Fund - Global':
             df = ftk.get_withintelligence_bulk(
@@ -139,7 +175,7 @@ def get_data(dataset: str) -> pd.DataFrame:
             df = df.dropna()
             df = df[~df.index.duplicated(keep='first')]
 
-            desc = 'Main strategy returns from the WithIntelligence Hedge Fund Index.'
+            desc = 'Asia strategy returns from the WithIntelligence Hedge Fund Index.'
 
         case _:
             pass
@@ -152,7 +188,7 @@ category = 'Zero'
 with st.sidebar:
 
     dataset = st.selectbox(
-        'Data', ['Asset Classes', 'MSCI ACWI Sectors', 'MSCI ACWI Factors', 'Hedge Fund - Asia', 'Hedge Fund - Global', 'Random'], 0)
+        'Data', ['Asset Classes', 'MSCI Regions/Countries', 'MSCI ACWI Sectors', 'MSCI ACWI Factors', 'Hedge Fund - Asia', 'Hedge Fund - Global', 'Random'], 0)
     raw, desc = get_data(dataset)
     data = raw.copy()
 
