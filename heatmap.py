@@ -61,38 +61,37 @@ def get_data(dataset: str) -> pd.DataFrame:
         case 'MSCI Regions/Countries':
             sectors = {
                 892400: 'ACWI',
-                    990100: 'World',
-                    990300: 'EAFE',
-                    990500: 'Europe',
-                    302000: 'APAC',
-                    891800: 'EM',
-                    122489: 'G. Dragon',
-                    718708: 'China A',
-                    984000: 'USA',
-                    912400: 'Canada',
-                    939200: 'Japan',
-                    935600: 'India',
-                    934400: 'Hong Kong',
-                    903600: 'Australia',
-                    982600: 'UK',
-                    938000: 'Italy',
-                    928000: 'Germany',
-                    925000: 'France',
-                    105767: 'Indonesia',
-                    941000: 'Korea',
-                    979200: 'Turkey',
-                    705405: 'Saudi',
-                    907600: 'Brazil',
-                    848400: 'Mexico',
-                    971000: 'S. Africa',
-                    903200: 'Argentina'
+                990100: 'World',
+                990300: 'EAFE',
+                990500: 'Europe',
+                302000: 'APAC',
+                891800: 'EM',
+                122489: 'G. Dragon',
+                718708: 'China A',
+                984000: 'USA',
+                912400: 'Canada',
+                939200: 'Japan',
+                935600: 'India',
+                934400: 'Hong Kong',
+                903600: 'Australia',
+                982600: 'UK',
+                938000: 'Italy',
+                928000: 'Germany',
+                925000: 'France',
+                105767: 'Indonesia',
+                941000: 'Korea',
+                979200: 'Turkey',
+                705405: 'Saudi',
+                907600: 'Brazil',
+                848400: 'Mexico',
+                971000: 'S. Africa',
+                903200: 'Argentina'
             }
             df = ftk.get_msci(sectors.keys(), variant='GRTR').dropna()
             df.columns = sectors.values()
             df.columns.name = 'Category'
 
-            desc = 'Returns for all 11 MSCI ACWI sectors.'
-
+            desc = 'Returns of the main MSCI regional and country indices.'
 
         case 'MSCI ACWI Sectors':
             sectors = {
@@ -153,7 +152,7 @@ def get_data(dataset: str) -> pd.DataFrame:
             df = df.dropna()
             df = df[~df.index.duplicated(keep='first')]
 
-            desc = 'Global strategy returns from the WithIntelligence Hedge Fund Index.'            
+            desc = 'Global strategy returns from the WithIntelligence Hedge Fund Index.'
 
         case 'Hedge Fund - Global':
             df = ftk.get_withintelligence_bulk(
@@ -290,7 +289,8 @@ st.markdown(desc)
 
 # Chart
 base = alt.Chart(data)
-xaxis = alt.X('Date:N', axis=alt.Axis(title=None)) if freq in freq_options else alt.X('Date', axis=alt.Axis(title=None), sort=alt.SortField('Months:O', order='ascending'))
+xaxis = alt.X('Date:N', axis=alt.Axis(title=None)) if freq in freq_options else alt.X(
+    'Date', axis=alt.Axis(title=None), sort=alt.SortField('Months:O', order='ascending'))
 heatmap = base.mark_rect().encode(
     x=xaxis,
     y=alt.Y('Rank:O', axis=None, sort='descending'),

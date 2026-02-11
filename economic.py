@@ -27,22 +27,28 @@ data = get_data()
 
 st.title('Economic Indicators')
 
-st.altair_chart(
-    alt.Chart(data).transform_filter(
-        alt.datum.Indicator == 'CPI'
-    ).mark_line().encode(
-        x='Date',
-        y = alt.Y('Value', axis=alt.Axis(format='%', title='CPI YoY')),
-        color='Country'
-    )
-)
+indicators = data['Indicator'].unique().tolist()
+countries = data['Country'].unique()
+tabs = st.tabs(indicators)
 
-st.altair_chart(
-    alt.Chart(data).transform_filter(
-        alt.datum.Indicator == 'Unemployment'
-    ).mark_line().encode(
-        x='Date',
-        y = alt.Y('Value', axis=alt.Axis(format='%', title='Unemployment Rate')),
-        color='Country'
+for i, tab in enumerate(tabs):
+
+    indicator = indicators[i]
+
+    row = tab.columns(len(countries))
+    for j, col in enumerate(row):        
+        country = countries[j]
+        with col.container(border=True, horizontal_alignment='center'):
+            df = data[(data['Country'] == country) & (data['Indicator'] == indicator)]
+            s = df['Value']
+            st.metric(country, s.iloc[-1], s.iloc[-1] - s.iloc[-2], help=str(df['Date'].iloc[-1]), format='percent', delta_color='inverse')
+
+    tab.altair_chart(
+        alt.Chart(data).transform_filter(
+            alt.datum.Indicator == indicator
+        ).mark_line().encode(
+            x='Date',
+            y = alt.Y('Value', axis=alt.Axis(format='%', title=indicator)),
+            color='Country'
+        )
     )
-)
