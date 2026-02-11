@@ -96,7 +96,30 @@ def get_data(dataset: str) -> pd.DataFrame:
 
             desc = 'Returns for the major MSCI ACWI factors.'
 
-        case 'Hedge Fund Indexes':
+        case 'Hedge Fund - Asia':
+            df = ftk.get_withintelligence_bulk(
+                [11425, 11449, 11431, 11451, 11454, 11453, 11450, 11430, 11443, 11452])
+            df = df.rename(columns={
+                'With Intelligence Asia Equity Hedge Fund Index': 'Equity',
+                'With Intelligence Asia Event Driven Hedge Fund Index': 'Event',
+                'With Intelligence Asia Fund of Funds Index': 'FoF',
+                'With Intelligence Asia Long/Short Equity Hedge Fund Index': 'L/S',
+                'With Intelligence Asia Hedge Fund Index': 'HF',
+                'With Intelligence Asia Relative Value Hedge Fund Index': 'RV',
+                'With Intelligence Asia Fixed Income/Credit Hedge Fund Index': 'FI/Credit',
+                'With Intelligence Asia Macro Hedge Fund Index': 'Macro',
+                'With Intelligence Asia Asset Weighted Index - USD': 'Asset Wtg.',
+                'With Intelligence Asia Multi-Strategy Hedge Fund Index': 'Multi'
+            })
+            df.index.name = 'Date'
+            df.columns.name = 'Category'
+            # Fix data issues - missing or duplicated returns
+            df = df.dropna()
+            df = df[~df.index.duplicated(keep='first')]
+
+            desc = 'Main strategy returns from the WithIntelligence Hedge Fund Index.'            
+
+        case 'Hedge Fund - Global':
             df = ftk.get_withintelligence_bulk(
                 [11469, 11475, 11470, 11471, 11420, 11473, 11474, 11454, 11486])
             df = df.rename(columns={
@@ -129,7 +152,7 @@ category = 'Zero'
 with st.sidebar:
 
     dataset = st.selectbox(
-        'Data', ['Asset Classes', 'MSCI ACWI Sectors', 'MSCI ACWI Factors', 'Hedge Fund Indexes', 'Random'], 0)
+        'Data', ['Asset Classes', 'MSCI ACWI Sectors', 'MSCI ACWI Factors', 'Hedge Fund - Asia', 'Hedge Fund - Global', 'Random'], 0)
     raw, desc = get_data(dataset)
     data = raw.copy()
 
