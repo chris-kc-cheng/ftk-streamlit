@@ -7,19 +7,26 @@ import toolkit as ftk
 @st.cache_data(ttl=3600)
 def get_data():
     data = pd.read_csv('data/indices.csv', index_col=0)
-    data = data[data['Group'] == 'Currency'].drop(columns=['Currency', 'Group'])
+    data = data[data['Group'] == 'Currency'].drop(
+        columns=['Currency', 'Group'])
     fx = ftk.get_yahoo_bulk(data.index, '2y')
     return fx, data
 
+
 def get_flag(code):
     return f'https://flagpedia.net/data/{"org" if code == "EU" else "flags"}/w320/{code.lower()}.png'
+
 
 fx, data = get_data()
 fx = fx.drop(columns=['USD=X']).dropna()
 fx.index = fx.index.date
 
 with st.sidebar:
-    from_date, to_date = st.select_slider('Period', options=fx.index, value=(fx.index[-252], fx.index[-1]))
+
+    st.logo('images/icon.png', icon_image='images/icon.png', size='large')
+    from_date, to_date = st.select_slider(
+        'Period', options=fx.index, value=(fx.index[-252], fx.index[-1]))
+    show = st.segmented_control('Show', ['Quote', 'Change'], default='Quote')
 
 filtered = fx.T[[from_date, to_date]]
 merged = filtered.join(data)
@@ -33,7 +40,7 @@ merged['index'] = merged['index'].str[:-2]
 
 matrix = pd.merge(merged, merged.add_prefix('FC'), how='cross')
 matrix = matrix.rename(columns={
-    'index': 'DC_ISO',    
+    'index': 'DC_ISO',
     from_date: 'DC_0',
     to_date: 'DC_1',
     'Name': 'DC_Name',
@@ -55,14 +62,15 @@ matrix['FC_Country'] = matrix['FC_Country'].apply(get_flag)
 st.title('Foreign Exchange')
 
 tooltip = [
-        alt.Tooltip('Quote:N', title='Quote'),
-        alt.Tooltip('FX_C:Q', title='Change', format='.2%'),
-        alt.Tooltip('FX_1:Q', title=str(to_date), format='.5g'),
-        alt.Tooltip('FX_0:Q', title=str(from_date), format='.5g'),
+    alt.Tooltip('Quote:N', title='Quote'),
+    alt.Tooltip('FX_C:Q', title='Change', format='.2%'),
+    alt.Tooltip('FX_1:Q', title=str(to_date), format='.5g'),
+    alt.Tooltip('FX_0:Q', title=str(from_date), format='.5g'),
 ]
 
 # Heatmap
 rng = max(abs(matrix['FX_C'].max()), abs(matrix['FX_C'].min()))
+
 base = alt.Chart(matrix)
 heatmap = base.mark_rect().encode(
     x=alt.X('FC_ISO:N', axis=None),
@@ -71,8 +79,8 @@ heatmap = base.mark_rect().encode(
         domain=[-rng, 0, rng],
         range=['red', '#fefefe', 'green']
     ),
-    legend=alt.Legend(format='.0%'),
-    title='Change'
+        legend=alt.Legend(format='.0%'),
+        title='Change'
     ),
     tooltip=tooltip
 ).properties(
@@ -95,9 +103,10 @@ y_images = base.mark_image(width=60).encode(
 )
 
 text = base.mark_text().encode(
-    x='FC_ISO:N',
-    y='DC_ISO:N',
-    text=alt.Text('FX_1:Q', format='.5g'),
+    x=alt.X('FC_ISO:N'),
+    y=alt.Y('DC_ISO:N'),
+    text=alt.Text('FX_1:Q', format='.5g') if show == 'Quote' else alt.Text(
+        'FX_C:Q', format='.2%'),
     tooltip=tooltip
 )
 
@@ -106,4 +115,5 @@ chart = heatmap + x_images + y_images + text
 st.altair_chart(chart, width='content')
 
 with st.expander('Data', expanded=False):
-    st.dataframe(matrix.drop(columns=['DC_Name', 'DC_Country', 'FC_Name', 'FC_Country']))
+    st.dataframe(matrix.drop(
+        columns=['DC_Name', 'DC_Country', 'FC_Name', 'FC_Country']))
