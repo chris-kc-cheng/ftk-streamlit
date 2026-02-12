@@ -92,7 +92,7 @@ table['As of'] = table['As of'].apply(
 groups = ['America', 'Asia', 'EMEA', 'Currency']
 horizons = ['MTD', 'QTD', 'YTD']
 
-st.title('World Indices Monitor')
+st.title('World Equity Indices')
 
 tabs = st.tabs(groups)
 

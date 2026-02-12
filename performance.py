@@ -88,8 +88,8 @@ efficiency = pd.Series({
     'Information Ratio': ftk.information_ratio(fund, benchmark),
     'Up Capture': ftk.up_capture(fund, benchmark),
     'Down Capture': ftk.down_capture(fund, benchmark),
-    'Sortino': ftk.sortino(fund),
-    'Calmar': ftk.calmar(fund),
+    'Sortino Ratio': ftk.sortino(fund),
+    'Calmar Ratio': ftk.calmar(fund),
 }).to_frame(name='').style.format("{:.2%}")
 efficiency.index.name = 'Efficiency'
 
