@@ -8,7 +8,8 @@ pages = {
         st.Page("heatmap.py", title="Heat Map")
     ],
     "Analysis": [
-        st.Page("portfolio.py", title="Portfolio"),
+        st.Page("performance.py", title="Performance & Risk"),
+        st.Page("portfolio.py", title="Portfolio Optimization"),
         st.Page("factors.py", title="Factor"),
         st.Page("peers.py", title="Peer Group"),
     ],

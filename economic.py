@@ -25,6 +25,9 @@ def get_data():
 
 data = get_data()
 
+with st.sidebar:
+    st.markdown('')
+
 st.title('Economic Indicators')
 
 indicators = data['Indicator'].unique().tolist()

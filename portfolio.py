@@ -38,10 +38,10 @@ with st.sidebar:
         value=[data.index[0], data.index[len(data) // 2]],
     )
     rfr = st.slider(
-        "Risk-free rate", value=0., min_value=0.0, max_value=0.1, step=0.01
+        "Risk-free rate", value=0., min_value=0.0, max_value=0.1, step=0.01, format='percent'
     )
     bounds = st.slider(
-        "Bounds", value=(0.05, 0.25), min_value=-1.0, max_value=2.0, step=0.05
+        "Bounds", value=(0.05, 0.25), min_value=-1.0, max_value=2.0, step=0.05, format='percent'
     )
     show = st.toggle('Show efficient frontier')
 
@@ -71,11 +71,33 @@ if len(assets) > 1:
     if horizon[1] > horizon[0]:
         col1, col2 = st.columns(2)
 
+        weights = wtgs.T
+        weights.index.name = 'Scheme'
+        weights = weights.reset_index().melt(
+            id_vars='Scheme', var_name='Asset', value_name='Weight')
+
         col1.header("Weights")
-        col1.bar_chart(wtgs.T)
+        c1 = (alt.Chart(weights).mark_bar()
+              .encode(y=alt.Y('Weight', axis=alt.Axis(format='%')),
+                      x=alt.X('Scheme'),
+                      color=alt.Color(
+                  'Asset', legend=alt.Legend(orient='bottom'))
+        ))
+        col1.altair_chart(c1)
+
+        contrib = ftk.risk_contribution(wtgs, cov)
+        contrib.index.name = 'Scheme'
+        contrib = contrib.reset_index().melt(
+            id_vars='Scheme', var_name='Asset', value_name='Contribution')
 
         col2.header("Risk Contribution")
-        col2.bar_chart(ftk.risk_contribution(wtgs, cov))
+        c2 = (alt.Chart(contrib).mark_bar()
+              .encode(y=alt.Y('Contribution', axis=alt.Axis(format='%')),
+                      x=alt.X('Scheme'),
+                      color=alt.Color(
+                  'Asset', legend=alt.Legend(orient='bottom'))
+        ))
+        col2.altair_chart(c2)
 
         # Efficient Frontier
         if show:
@@ -92,37 +114,44 @@ if len(assets) > 1:
         col1, col2 = st.columns(2)
         col1.header("Asset Class Returns")
 
-        c = (alt.Chart(
+        c3 = (alt.Chart(
             pd.concat([
                 ftk.compound_return(returns, annualize=True),
                 ftk.volatility(returns, annualize=True)],
                 axis=1, keys=['Return', 'Volatility']).reset_index()
         )
             .mark_circle()
-            .encode(y='Return', x='Volatility', color=alt.Color('Ticker',
-                                                                legend=alt.Legend(
-                                                                    orient='bottom',))
+            .encode(y=alt.Y('Return', axis=alt.Axis(format='%')),
+                    x=alt.X('Volatility', axis=alt.Axis(format='%')),
+                    color=alt.Color(
+                        'Ticker', legend=alt.Legend(orient='bottom'))
                     ))
         if show:
-            c += ef
-        col1.altair_chart(c, use_container_width=True)
+            c3 += ef
+        col1.altair_chart(c3, use_container_width=True)
 
         col2.header("Portfolio Returns")
-        c = (alt.Chart(pd.concat([
+
+        port = pd.concat([
             ftk.portfolio_return(wtgs, er),
             ftk.portfolio_volatility(wtgs, cov)],
-            axis=1, keys=['Return', 'Volatility']).reset_index()
-        )
-            .mark_circle()
-            .encode(y='Return', x='Volatility', color=alt.Color('index',
-                                                                legend=alt.Legend(
-                                                                    orient='bottom',))
-                    ))
+            axis=1, keys=['Return', 'Volatility'])
+        port.index.name = 'Ticker'
+
+        c4 = (alt.Chart(port.reset_index())
+              .mark_circle()
+              .encode(y=alt.Y('Return', axis=alt.Axis(format='%')),
+                      x=alt.X('Volatility', axis=alt.Axis(format='%')),
+                      color=alt.Color(
+                  'Ticker', legend=alt.Legend(orient='bottom'))
+        ))
         if show:
-            c += ef
-        col2.altair_chart(c, use_container_width=True)
+            c4 += ef
+        col2.altair_chart(c4, use_container_width=True)
+
     else:
         st.header("Invalid sample period")
+
 else:
     st.header("Please select at least two asset classes")
 

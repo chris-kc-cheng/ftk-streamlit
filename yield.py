@@ -71,15 +71,15 @@ for i, region in enumerate(regions):
 
         df1['Date'] = df1['Date'].dt.strftime('%Y-%m-%d')
         curve = alt.Chart(df1).mark_line().encode(
-            x='Maturity',
-            y='Bond Yield',
+            x=alt.X('Maturity', title='Maturity (Years)'),
+            y=alt.Y('Bond Yield', title='Bond Yield (%)'),
             color=alt.Color('Date', scale=alt.Scale(domain=[df1['Date'].iloc[1], df1['Date'].iloc[0]]), legend=alt.Legend(title='Dates', orient='top'))
         )
 
         history = alt.Chart(yc[(yc['Date'].between(min, max)) & (yc['Region'] == region)]).mark_line().encode(
             x='Date',
-            y='Bond Yield',
-            color='Maturity'
+            y=alt.Y('Bond Yield', title='Bond Yield (%)'),
+            color=alt.Color('Maturity', title='Maturity (Years)', legend=alt.Legend(orient='bottom'))
         )
 
         st.altair_chart(curve & history)

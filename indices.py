@@ -49,7 +49,7 @@ with st.sidebar:
                 as `-9.09%`.
     ''')
 
-    lookback = st.slider('Sparkline lookback period', 5, 252, 252)
+    lookback = st.slider('Sparkline lookback (days)', 5, 252, 252)
         
 
 # Adjust the prices
