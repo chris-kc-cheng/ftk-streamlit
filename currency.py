@@ -54,6 +54,13 @@ matrix['FC_Country'] = matrix['FC_Country'].apply(get_flag)
 
 st.title('Foreign Exchange')
 
+tooltip = [
+        alt.Tooltip('Quote:N', title='Quote'),
+        alt.Tooltip('FX_C:Q', title='Change', format='.2%'),
+        alt.Tooltip('FX_1:Q', title=str(to_date), format='.5g'),
+        alt.Tooltip('FX_0:Q', title=str(from_date), format='.5g'),
+]
+
 # Heatmap
 rng = max(abs(matrix['FX_C'].max()), abs(matrix['FX_C'].min()))
 base = alt.Chart(matrix)
@@ -67,7 +74,7 @@ heatmap = base.mark_rect().encode(
     legend=alt.Legend(format='.0%'),
     title='Change'
     ),
-    tooltip=alt.Tooltip('Quote:N', title='Info')
+    tooltip=tooltip
 ).properties(
     height=600,
     width=1200
@@ -91,12 +98,7 @@ text = base.mark_text().encode(
     x='FC_ISO:N',
     y='DC_ISO:N',
     text=alt.Text('FX_1:Q', format='.5g'),
-    tooltip=[
-        alt.Tooltip('Quote:N', title='Quote'),
-        alt.Tooltip('FX_C:Q', title='Change', format='.2%'),
-        alt.Tooltip('FX_1:Q', title=str(to_date), format='.5g'),
-        alt.Tooltip('FX_0:Q', title=str(from_date), format='.5g'),
-    ]
+    tooltip=tooltip
 )
 
 # Combine

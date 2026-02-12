@@ -4,11 +4,20 @@
 
 In this repository, I have created several web apps that demonstrate common use cases in investment management, leveraging the [Financial Toolkit](https://github.com/chris-kc-cheng/financial-toolkit).
 
-Click the `Play` button below to launch the web app — a lightweight alternative to Bloomberg.
+Click the badge below to launch the web app — a lightweight alternative to Bloomberg.
 
 <a href="https://terminal.streamlit.app/">
-    <img src='https://gist.githubusercontent.com/cxmeel/0dbc95191f239b631c3874f4ccf114e2/raw/play.svg' alt='Play' style='border: none;' />
+    <img src='https://static.streamlit.io/badges/streamlit_badge_black_white.svg' alt='Play' style='border: none;' />
 </a>
+
+## App 10: Foreign Exchange
+
+This web application visualizes cross-currency exchange rates in a heatmap format, displaying real-time quotes and corresponding percentage changes.
+
+<a href="https://terminal.streamlit.app/currency">
+    <img alt='Yield Curve' src='images/currency.png' style='border: none' />
+</a>
+
 
 ## App 9: Periodic Table
 
