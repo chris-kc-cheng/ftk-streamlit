@@ -18,7 +18,6 @@ This web application visualizes cross-currency exchange rates in a heatmap forma
     <img alt='Yield Curve' src='images/currency.png' style='border: none' />
 </a>
 
-
 ## App 9: Periodic Table
 
 This web app displays a periodic-table-style summary of returns across different asset classes and hedge fund strategies. Users can customize the table by selecting different time horizons, adjusting conditional formatting, changing the order, and choosing the reference point.
@@ -45,12 +44,11 @@ This web app tracks Canadian and US economic indicators (CPI and unemployment ra
 
 ## App 6: Asset Liability Management
 
-The web app uses the Cox–Ingersoll–Ross (CIR) model to  generate interest-rate scenarios that evolve over time while reverting toward a long-term level.
+The web app uses the Cox–Ingersoll–Ross (CIR) model to generate interest-rate scenarios that evolve over time while reverting toward a long-term level.
 
 <a href="https://terminal.streamlit.app/alm">
     <img alt='Asset Liability Management' src='images/alm.png' style='border: none' />
 </a>
-
 
 ## App 5: Market Index Data
 
@@ -93,6 +91,5 @@ This web app presents the values of individual securities and the total payoffs 
 <a href="https://terminal.streamlit.app/options">
     <img alt='Option Strategies' src='images/options.png' style='border: none' />
 </a>
-
 
 The source code is hosted on GitHub at: https://github.com/chris-kc-cheng/ftk-streamlit.

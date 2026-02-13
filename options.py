@@ -150,7 +150,7 @@ $\Delta(put) = - e^{-q \\tau} \Phi(-d_1)$
 
 For an option with delta of 0.5, its value will increase by \$5 when the price of the underlying asset increase by \$10.
                     ''')
-    
+
     col2.header('Gamma')
     col2.line_chart(gamma_df)
     with col2.expander("See explanation"):

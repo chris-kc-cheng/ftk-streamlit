@@ -28,15 +28,17 @@ def resample(portfolio, factors):
     merged = pd.merge(portfolio, factors, left_index=True, right_index=True)
     return merged.iloc[:, 0], merged.iloc[:, 1:-1], merged.iloc[:, -1]
 
+
 @st.cache_data(ttl=60)
 def get_bestfit(portfolio):
 
-    def analyse(portfolio, model):        
+    def analyse(portfolio, model):
         portfolio, factors, rfr = resample(portfolio, get_factors(model, mom))
         return ftk.rsquared(portfolio - rfr, factors, adjusted=True)
 
     models = get_datasets()
     return pd.Series([analyse(portfolio, model) for model in models], index=models).sort_values(ascending=False)
+
 
 if 'price' not in st.session_state:
     st.session_state.price = None
@@ -69,7 +71,8 @@ if portfolio is not None:
 
     if st.button('Check model of best fit'):
         best = get_bestfit(portfolio)
-        st.info(f'The model of best fit is {best.index[0]} with adjusted R-squared of {best.iloc[0]:.2%}')
+        st.info(
+            f'The model of best fit is {best.index[0]} with adjusted R-squared of {best.iloc[0]:.2%}')
 
     factors = get_factors(dataset, mom)
 

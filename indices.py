@@ -50,11 +50,12 @@ with st.sidebar:
     ''')
 
     lookback = st.slider('Sparkline lookback (days)', 5, 252, 252)
-        
+
 
 # Adjust the prices
 def getFX(c):
     return px.loc[:, f'{data.loc[c].Currency}=X']
+
 
 usd = pd.Series(np.ones(len(px)), index=px.index)
 px['USD=X'] = usd
@@ -62,9 +63,11 @@ if base != 'Local':
 
     foreign_fx = px.apply(lambda column: getFX(column.name))
     domestic_fx = px.loc[:, f'{base}=X']
-    
-    adj_fx = px.filter(regex='=X$', axis=1).apply(lambda x: ftk.convert_fx(domestic_fx, x, usd))
-    adj_px = px.filter(regex='.*(?<!=X)$', axis=1).apply(lambda x: ftk.convert_fx(x, foreign_fx[x.name], domestic_fx))
+
+    adj_fx = px.filter(regex='=X$', axis=1).apply(
+        lambda x: ftk.convert_fx(domestic_fx, x, usd))
+    adj_px = px.filter(regex='.*(?<!=X)$', axis=1).apply(
+        lambda x: ftk.convert_fx(x, foreign_fx[x.name], domestic_fx))
 
     adjusted = pd.concat([adj_fx, adj_px], axis=1)
 
@@ -92,7 +95,7 @@ table['As of'] = table['As of'].apply(
 groups = ['America', 'Asia', 'EMEA', 'Currency']
 horizons = ['MTD', 'QTD', 'YTD']
 
-st.title('World Equity Indices')
+st.title('Equity Dashboard')
 
 tabs = st.tabs(groups)
 
@@ -104,28 +107,28 @@ for i, group in enumerate(groups):
         for j, horizon in enumerate(horizons):
             with htabs[j]:
                 c = (alt.Chart(t)
-                    .mark_bar()
-                    .encode(
-                        alt.X('Name', sort='-y'),
-                        alt.Y(horizon),
-                        alt.Color('Country')
-                    )
+                     .mark_bar()
+                     .encode(
+                    alt.X('Name', sort='-y'),
+                    alt.Y(horizon),
+                    alt.Color('Country')
+                )
                 )
                 st.altair_chart(c, use_container_width=True)
 
         st.dataframe(t,
-                    hide_index=True,
-                    column_order=['flag', 'Name', 'MTD',
-                                'QTD', 'YTD', 'Last', 'As of', 'chart'],
-                    column_config={
-                        'flag': st.column_config.ImageColumn(''),
-                        'MTD': st.column_config.NumberColumn(format='%.2f'),
-                        'QTD': st.column_config.NumberColumn(format='%.2f'),
-                        'YTD': st.column_config.NumberColumn(format='%.2f'),
-                        'Last': st.column_config.NumberColumn(format='%.2f'),
-                        'chart': st.column_config.LineChartColumn(f'Last {lookback} Trading Days'),                        
-                    },
-                    use_container_width=True)
+                     hide_index=True,
+                     column_order=['flag', 'Name', 'MTD',
+                                   'QTD', 'YTD', 'Last', 'As of', 'chart'],
+                     column_config={
+                         'flag': st.column_config.ImageColumn(''),
+                         'MTD': st.column_config.NumberColumn(format='%.2f'),
+                         'QTD': st.column_config.NumberColumn(format='%.2f'),
+                         'YTD': st.column_config.NumberColumn(format='%.2f'),
+                         'Last': st.column_config.NumberColumn(format='%.2f'),
+                         'chart': st.column_config.LineChartColumn(f'Last {lookback} Trading Days'),
+                     },
+                     use_container_width=True)
 
 with st.expander('Data', expanded=False):
     st.write(adjusted)

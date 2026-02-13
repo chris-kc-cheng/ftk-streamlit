@@ -59,8 +59,6 @@ matrix['FX_C'] = matrix['FX_1'] / matrix['FX_0'] - 1
 matrix['DC_Country'] = matrix['DC_Country'].apply(get_flag)
 matrix['FC_Country'] = matrix['FC_Country'].apply(get_flag)
 
-st.title('Foreign Exchange')
-
 tooltip = [
     alt.Tooltip('Quote:N', title='Quote'),
     alt.Tooltip('FX_C:Q', title='Change', format='.2%'),
@@ -70,6 +68,13 @@ tooltip = [
 
 # Heatmap
 rng = max(abs(matrix['FX_C'].max()), abs(matrix['FX_C'].min()))
+
+hover = alt.selection_point(
+    fields=['FC_ISO', 'DC_ISO'],
+    on='mouseover',
+    empty='none'
+)
+brush = alt.selection_interval(encodings=["x"])
 
 base = alt.Chart(matrix)
 heatmap = base.mark_rect().encode(
@@ -83,7 +88,7 @@ heatmap = base.mark_rect().encode(
         title='Change'
     ),
     tooltip=tooltip
-).properties(
+).add_params(hover).properties(
     height=600,
     width=1200
 )
@@ -110,9 +115,30 @@ text = base.mark_text().encode(
     tooltip=tooltip
 )
 
-# Combine
 chart = heatmap + x_images + y_images + text
-st.altair_chart(chart, width='content')
+
+# Filtered time series
+ts = fx
+ts.index.name = 'Date'
+ts = ts.reset_index().melt(id_vars='Date', var_name='DC_ISO', value_name='Rate')
+ts['DC_ISO'] = ts['DC_ISO'].str[:-2]
+ts = pd.merge(ts, ts.add_prefix('FC'), left_on='Date', right_on='FCDate')
+ts['Rate'] = ts['FCRate'] / ts['Rate']
+ts = ts.rename(columns={'FCDC_ISO': 'FC_ISO'}).drop(
+    columns=['FCDate', 'FCRate'])
+x = ts.merge(matrix, left_on=['DC_ISO', 'FC_ISO'],
+             right_on=['DC_ISO', 'FC_ISO'], how='inner')
+
+line = alt.Chart(x).mark_line().encode(
+    x='Date:T',
+    y='Rate:Q'
+).transform_filter(hover)
+
+# Page
+col1, col2 = st.columns(2)
+col1.title('Foreign Exchange')
+
+st.altair_chart(chart, width='content')  # chart & line, too slow
 
 with st.expander('Data', expanded=False):
     st.dataframe(matrix.drop(

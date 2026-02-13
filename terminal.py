@@ -20,5 +20,6 @@ pages = {
     ],
 }
 
+st.set_page_config(page_title="Financial Terminal", layout="wide")
 pg = st.navigation(pages, position="top")
 pg.run()

@@ -4,11 +4,13 @@ import numpy as np
 import pandas as pd
 import toolkit as ftk
 
+
 @st.cache_data(ttl=3600)
 def get_data() -> pd.DataFrame:
     data = pd.read_csv('data/test.csv', index_col=0)
     data.index = pd.PeriodIndex(data.index, freq='M')
     return data
+
 
 with st.sidebar:
     text = st.text_input("Securities (comma separated)")
@@ -19,9 +21,12 @@ with st.sidebar:
     if text:
         securities = [x.strip() for x in text.split(",") if x.strip()]
 
-    market = st.segmented_control('Market', ['All', 'Up', 'Down'], default='All')
-    ci = st.slider('Confidence interval', min_value=0.9, max_value=0.995, value=0.95, step=0.005, format='percent')
-    bin_size = st.slider('Bin size', min_value=0.005, max_value=0.1, value=0.01, step=0.005, format='percent')
+    market = st.segmented_control(
+        'Market', ['All', 'Up', 'Down'], default='All')
+    ci = st.slider('Confidence interval', min_value=0.9,
+                   max_value=0.995, value=0.95, step=0.005, format='percent')
+    bin_size = st.slider('Bin size', min_value=0.005,
+                         max_value=0.1, value=0.01, step=0.005, format='percent')
 
 raw = get_data()
 mask = pd.Series(True, index=raw.index)
@@ -77,8 +82,8 @@ regression = pd.Series({
     'Beta (Rfr Adjusted)': ftk.beta(fund - rfr, benchmark - rfr),
     'Correlation': ftk.correlation(pd.concat([fund, benchmark], axis=1)).iloc[0, -1],
     'R²': ftk.rsquared(fund, benchmark),
-    #'Annualized Alpha': ftk.alpha(fund, benchmark, annualize=True),
-    #'Jensen''s Alpha': ftk.alpha(fund - rfr, benchmark - rfr, annualize=True),
+    # 'Annualized Alpha': ftk.alpha(fund, benchmark, annualize=True),
+    # 'Jensen''s Alpha': ftk.alpha(fund - rfr, benchmark - rfr, annualize=True),
     'Autocorrelation': ftk.correlation(pd.concat([fund.iloc[1:], fund.iloc[1:].shift(-1)], axis=1)).iloc[0, -1],
 }).to_frame(name='').style.format("{:.2%}")
 regression.index.name = 'Regression'
@@ -103,7 +108,8 @@ vami['Return'] = vami['Return'] - 1
 line = alt.Chart(vami).mark_line().encode(
     x='Date',
     y=alt.Y('Return', title='Cumulative Return', axis=alt.Axis(format='%')),
-    color=alt.Color('Series', scale=alt.Scale(domain=['Fund', 'Benchmark']), legend=alt.Legend(orient='top', title=None))
+    color=alt.Color('Series', scale=alt.Scale(
+        domain=['Fund', 'Benchmark']), legend=alt.Legend(orient='top', title=None))
 )
 line
 
@@ -112,8 +118,8 @@ histogram = alt.Chart(df).mark_bar().encode(
     alt.Y('count()', title='Count', stack=None),
     color=alt.Color('Series', scale=alt.Scale(domain=['Fund', 'Benchmark']))
 ).facet(column=alt.Column('Series', sort=['Fund', 'Benchmark'], header=alt.Header(
-            title=None
-        )))
+    title=None
+)))
 histogram
 
 col1, col2, col3 = st.columns(3)
