@@ -12,12 +12,12 @@ def get_data():
     try:
         us = ftk.get_bls_bulk()
     except Exception as e:
-        st.warning('Unable to fetch US data')
+        st.warning('Unable to fetch US data')  # API daily limit
 
     df = pd.concat({
-        ('Canada', 'CPI'): ca[41690973].pct_change(12).dropna(),
+        ('Canada', 'CPI'): ca[41690973].ffill().pct_change(12).dropna(),
         ('Canada', 'Unemployment'): ca[2062815] / 100,
-        ('US', 'CPI'): us['CUUR0000SA0'].pct_change(12).dropna() if not us.empty else pd.Series(),
+        ('US', 'CPI'): us['CUUR0000SA0'].ffill().pct_change(12).dropna() if not us.empty else pd.Series(),
         ('US', 'Unemployment'): us['LNS14000000'] / 100
     })
     df.name = 'Value'

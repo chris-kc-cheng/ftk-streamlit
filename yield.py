@@ -66,13 +66,13 @@ def get_policy():
     bytes = BytesIO(response.content)
     with ZipFile(bytes) as z:
         with z.open(z.namelist()[0]) as f:
-            df = pd.read_csv(f)
+            df = pd.read_csv(f, usecols=fields.keys())
 
     df = df.rename(columns=fields)
     df = df[df['freq'] == 'D: Daily'].drop(columns='freq')
     df[['iso', 'country']] = df['country'].str.split(':', expand=True)
     df = df[df['iso'].isin(countries)]
-    df["date"] = pd.to_datetime(df["date"])
+    df['date'] = pd.to_datetime(df["date"])
     df['rate'] = df['rate'].div(100)
     df = df[df['date'] >= '2020']
 
@@ -97,18 +97,17 @@ with st.sidebar:
         format_func=lambda d: d.strftime('%Y-%m-%d')
     )
 
-df = yc[(yc['Date'] == min) | (yc['Date'] == max)]
+df = yc[(yc['Date'] == min) | (yc['Date'] == max)].copy()
 
 st.title('Fixed Income Dashboard')
 
 tab1, tab2 = st.tabs(['Canada & US Yield Curve', 'World Policy Rates'])
 with tab1:
-
     df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
     curve = alt.Chart(df).mark_line().encode(
         x=alt.X('Maturity', title='Maturity (Years)'),
         y=alt.Y('Bond Yield', title='Bond Yield (%)'),
-        color=alt.Color('Date', scale=alt.Scale(domain=[
+        color=alt.Color('Date:N', scale=alt.Scale(domain=[
                         df['Date'].iloc[1], df['Date'].iloc[0]]), legend=alt.Legend(title='Dates', orient='top'))
     ).facet(column=alt.Column('Region:N', header=alt.Header(title=None)))
 
@@ -123,7 +122,7 @@ with tab1:
     st.altair_chart(history)
 
 with tab2:
-    policy = get_policy().fillna(method='ffill')
+    policy = get_policy().ffill()
 
     scale = alt.Scale(domain=[policy['rate'].min(), policy['rate'].max()])
     line = alt.Chart(policy).mark_line().encode(

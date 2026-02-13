@@ -15,12 +15,11 @@ def get_factors(dataset, mom):
 
 @st.cache_data(ttl=60)
 def get_price(ticker):
-    return ftk.price_to_return(ftk.get_yahoo(ticker)).asfreq("B")
+    return ftk.price_to_return(ftk.get_yahoo(ticker)).asfreq("D")
 
 
 # Return (portfolio, factors, rfr)
 def resample(portfolio, factors):
-    print("******", portfolio.index.freqstr, factors.index.freqstr)
     if ftk.periodicity(portfolio) > ftk.periodicity(factors):
         portfolio = portfolio.resample(
             factors.index.freqstr).aggregate(ftk.compound_return)
@@ -89,8 +88,9 @@ if portfolio is not None:
         ftk.carino(total_return, 0)
     contribution = k.sum().sort_values(ascending=False)
 
-    summary = pd.DataFrame({'Beta': {'Unexplained': None, 'Total': None},
-                            'Contribution': {'Unexplained': total_return - contribution.sum(), 'Total': total_return}})
+    summary = pd.DataFrame({
+        'Contribution': {'Unexplained': total_return - contribution.sum(), 'Total': total_return}
+    })
 
     table = pd.concat([betas, contribution], axis=1)
     table.columns = ['Beta', 'Contribution']

@@ -128,7 +128,7 @@ if len(assets) > 1:
                     ))
         if show:
             c3 += ef
-        col1.altair_chart(c3, use_container_width=True)
+        col1.altair_chart(c3)
 
         col2.header("Portfolio Returns")
 
@@ -147,7 +147,7 @@ if len(assets) > 1:
         ))
         if show:
             c4 += ef
-        col2.altair_chart(c4, use_container_width=True)
+        col2.altair_chart(c4)
 
     else:
         st.header("Invalid sample period")

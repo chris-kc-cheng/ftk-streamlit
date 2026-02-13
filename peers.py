@@ -36,20 +36,23 @@ params = st.query_params
 url = "?fund=PRCOX&fund=GQEFX&fund=STSEX&fund=NUESX&fund=VTCLX&fund=CAPEX&fund=USBOX&fund=VPMCX&fund=JDEAX&fund=DFUSX&fund=GALLX&benchmark=%5ESP500TR"
 
 st.title('Peer Group Analysis')
-if 'fund' not in params or 'benchmark' not in params or len(params['fund']) < 1 and len(params['benchmark']) != 1:
-    st.error('ERROR: No fund or benchmark specified. Please try the following URL.')
+
+with st.expander('Parameter'):
     st.markdown(f"""
     Click the following link and replace the tickers with your funds and benchmark.
-                
+
     > <a href="{url}" target="_self">{url}</a>
     """, unsafe_allow_html=True)
-    st.stop()
 
-tickers = params.get_all('fund')
-tickers.extend(params.get_all('benchmark'))
+if 'fund' not in params or 'benchmark' not in params or len(params['fund']) < 1 and len(params['benchmark']) != 1:
+    tickers = ['PRCOX', 'GQEFX', 'STSEX', 'NUESX', 'VTCLX', 'CAPEX',
+               'USBOX', 'VPMCX', 'JDEAX', 'DFUSX', 'GALLX', '%5ESP500TR']
+else:
+    tickers = params.get_all('fund')
+    tickers.extend(params.get_all('benchmark'))
 
 price = get_price(tickers)
-periods = price.resample('M').last().to_period()
+periods = price.resample('ME').last().to_period()
 
 with st.sidebar:
     horizon = st.select_slider(
@@ -62,7 +65,7 @@ with st.sidebar:
     )
 
 # Process the data
-rtn = ftk.price_to_return(price.resample('M').last())[horizon[0]: horizon[1]]
+rtn = ftk.price_to_return(price.resample('ME').last())[horizon[0]: horizon[1]]
 rtn['RF'] = (1 + rfr_annualized) ** (1 / 12) - 1  # M
 rtn = rtn.dropna(axis=1)
 
@@ -120,7 +123,7 @@ category_tabs = st.tabs(
 
 with category_tabs[0]:
     annualize = st.toggle('Annualize', value=True)
-    st.dataframe(get_rolling(fund_n_bm, annualize), use_container_width=False)
+    st.dataframe(get_rolling(fund_n_bm, annualize))
 
 with category_tabs[1]:
     st.dataframe(get_table(fund_n_bm, 'Y'))

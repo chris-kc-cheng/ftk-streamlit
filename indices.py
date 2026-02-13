@@ -114,7 +114,7 @@ for i, group in enumerate(groups):
                     alt.Color('Country')
                 )
                 )
-                st.altair_chart(c, use_container_width=True)
+                st.altair_chart(c)
 
         st.dataframe(t,
                      hide_index=True,
@@ -127,8 +127,7 @@ for i, group in enumerate(groups):
                          'YTD': st.column_config.NumberColumn(format='%.2f'),
                          'Last': st.column_config.NumberColumn(format='%.2f'),
                          'chart': st.column_config.LineChartColumn(f'Last {lookback} Trading Days'),
-                     },
-                     use_container_width=True)
+                     })
 
 with st.expander('Data', expanded=False):
     st.write(adjusted)
