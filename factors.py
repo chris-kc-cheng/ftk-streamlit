@@ -89,15 +89,11 @@ if portfolio is not None:
     attribution['Residual'] = portfolio - explained
 
     total_return = ftk.compound_return(portfolio)
-    # k = (attribution.T * ftk.carino(portfolio, 0)).T / \
-    #    ftk.carino(total_return, 0)
-    # contribution = k.sum().sort_values(ascending=False)
-
     contribution = ftk.carino(
         attribution, pd.DataFrame(np.zeros_like(attribution), index=attribution.index, columns=attribution.columns)).sum()
 
     summary = pd.DataFrame({
-        'Contribution': {'Unexplained': total_return - contribution.sum(), 'Total': total_return}
+        'Contribution': {'Total': total_return}
     })
 
     table = pd.concat([betas, contribution], axis=1)

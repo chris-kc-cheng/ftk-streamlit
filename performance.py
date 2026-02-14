@@ -16,6 +16,15 @@ def get_data(tickers) -> pd.DataFrame:
     return data.dropna()
 
 
+horizons = {
+    '1Y': 12,
+    '3Y': 36,
+    '5Y': 60,
+    '10Y': 120,
+    'All': 0
+}
+
+
 if 'price' not in st.session_state:
     st.session_state.price = pd.DataFrame()
 
@@ -28,6 +37,17 @@ with st.sidebar:
         if submitted:
             st.session_state.price = get_data([f, b, r])
 
+    show = st.segmented_control(
+        'Show', st.session_state.price.columns, default=st.session_state.price.columns[:2], selection_mode='multi')
+    horizon = st.segmented_control(
+        'Time Horizon', ['1Y', '3Y', '5Y', '10Y', 'All', 'Custom'], default='10Y')
+    if horizon == 'Custom':
+        date_range = st.select_slider(
+            'Date Range',
+            options=st.session_state.price.index,
+            value=(st.session_state.price.index[0],
+                   st.session_state.price.index[-1]),
+            format_func=lambda d: d.strftime('%Y-%m-%d'))
     market = st.segmented_control(
         'Market', ['All', 'Up', 'Down'], default='All')
     ci = st.slider('Confidence interval', min_value=0.9,
@@ -41,23 +61,27 @@ if len(raw) == 0:
     st.info('Search a fund, benchmark and risk free rate to continue')
     st.stop()
 
-
-mask = pd.Series(True, index=raw.index)
+market_mask = pd.Series(True, index=raw.index)
 match market:
     case 'Up':
-        mask = raw['Fund'] >= 0
+        market_mask = raw['Fund'] >= 0
     case 'Down':
-        mask = raw['Fund'] < 0
-data = raw[mask]
+        market_mask = raw['Fund'] < 0
+horizon_mask = -horizons[horizon] if horizon in horizons else None
+data = raw[market_mask].iloc[horizon_mask:]
+if horizon == 'Custom':
+    data = data.loc[date_range[0]:date_range[1]]
 
 # Series
 fund = data['Fund']
 benchmark = data['Benchmark']
 rfr = data['Rfr']
 
+data = data[show]
+
 # Long format without Rfr
-df = data.melt(var_name='Series', value_name='Return')
-df = df.loc[df['Series'] != 'Rfr']
+df = data
+df = df.melt(var_name='Series', value_name='Return')
 
 perf = pd.Series({
     'Annualized Return': ftk.compound_return(fund, annualize=True),
@@ -144,7 +168,7 @@ efficiency.index.name = 'Efficiency'
 
 st.title('Performance and Risk Analysis')
 
-vami = ftk.return_to_price(pd.concat([fund, benchmark], axis=1))
+vami = ftk.return_to_price(data)
 vami.index.name = 'Date'
 vami = vami.reset_index().melt(id_vars='Date', var_name='Series', value_name='Return')
 vami['Return'] = vami['Return'] - 1
@@ -152,15 +176,15 @@ line = alt.Chart(vami).mark_line().encode(
     x='Date',
     y=alt.Y('Return', title='Cumulative Return', axis=alt.Axis(format='%')),
     color=alt.Color('Series', scale=alt.Scale(
-        domain=['Fund', 'Benchmark']), legend=alt.Legend(orient='top', title=None))
+        domain=raw.columns), legend=alt.Legend(orient='top', title=None))
 )
 line
 
 histogram = alt.Chart(df).mark_bar().encode(
     alt.X('Return', bin=alt.Bin(step=bin_size), axis=alt.Axis(format='%')),
     alt.Y('count()', title='Count', stack=None),
-    color=alt.Color('Series', scale=alt.Scale(domain=['Fund', 'Benchmark']))
-).facet(column=alt.Column('Series', sort=['Fund', 'Benchmark'], header=alt.Header(
+    color=alt.Color('Series', scale=alt.Scale(domain=raw.columns))
+).facet(column=alt.Column('Series', sort=raw.columns, header=alt.Header(
     title=None
 )))
 histogram
