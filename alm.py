@@ -82,10 +82,10 @@ with st.sidebar:
 
     st.markdown("---")
 
-    asset = st.slider('Cash in hand', min_value=0,
-                      max_value=10000000, step=250000, value=750000, format="dollar")
-    liability = st.slider('Liability', min_value=0,
-                          max_value=10000000, step=250000, value=1000000, format="dollar")
+    # asset = st.slider('Cash in hand', min_value=0,
+    #                   max_value=10000000, step=250000, value=750000, format="dollar")
+    # liability = st.slider('Liability', min_value=0,
+    #                       max_value=10000000, step=250000, value=1000000, format="dollar")
 
 
 st.title('Asset Liability Management')
@@ -95,11 +95,18 @@ rates, prices = cir(years=years, a=a, b=b, sigma=sigma, init=r0,
 
 st.header('Cox-Ingersoll-Ross Model')
 
-st.altair_chart(alt.Chart(rates.reset_index().melt(id_vars='index', var_name='c', value_name='y')).mark_line().encode(
+rates_chart = alt.Chart(rates.reset_index().melt(id_vars='index', var_name='c', value_name='y')).mark_line().encode(
     x=alt.X('index', axis=alt.Axis(tickMinStep=1, title='Time')),
     y=alt.Y('y', axis=alt.Axis(title='Rates', format='%')),
     color=alt.Color('c', legend=None)
-), use_container_width=True)
-st.line_chart(prices, x_label='Time', y_label='Bond Prices')
+)
+
+prices_chart = alt.Chart(prices.reset_index().melt(id_vars='index', var_name='c', value_name='y')).mark_line().encode(
+    x=alt.X('index', axis=alt.Axis(tickMinStep=1, title='Time')),
+    y=alt.Y('y', axis=alt.Axis(title='Bond Prices')),
+    color=alt.Color('c', legend=None)
+)
+
+st.altair_chart(rates_chart | prices_chart)
 
 st.markdown(open('data/signature.md').read())

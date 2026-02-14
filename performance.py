@@ -6,20 +6,27 @@ import toolkit as ftk
 
 
 @st.cache_data(ttl=3600)
-def get_data() -> pd.DataFrame:
-    data = pd.read_csv('data/test.csv', index_col=0)
-    data.index = pd.PeriodIndex(data.index, freq='M')
-    return data
+def get_data(tickers) -> pd.DataFrame:
+    data = ftk.get_yahoo_bulk(tickers)
+    data = data.resample('ME').last()
+    data.columns = ['Fund', 'Benchmark', 'Rfr']
+    data[['Fund', 'Benchmark']] = data[['Fund', 'Benchmark']].pct_change()
+    data['Rfr'] = data['Rfr'] / 12 / 100
+    data.index = data.index.to_period('M')
+    return data.dropna()
 
+
+if 'price' not in st.session_state:
+    st.session_state.price = pd.DataFrame()
 
 with st.sidebar:
-    text = st.text_input("Securities (comma separated)")
-    bm = st.text_input("Benchmark")
-    rfr = st.text_input("Risk-free rate")
-
-    securities = []
-    if text:
-        securities = [x.strip() for x in text.split(",") if x.strip()]
+    with st.form("my_form"):
+        f = st.text_input('Fund / Stock', value='FCNTX')
+        b = st.text_input('Benchmark', value='^GSPC')
+        r = st.text_input('Risk-free rate', value='^IRX')
+        submitted = st.form_submit_button('Search')
+        if submitted:
+            st.session_state.price = get_data([f, b, r])
 
     market = st.segmented_control(
         'Market', ['All', 'Up', 'Down'], default='All')
@@ -28,7 +35,13 @@ with st.sidebar:
     bin_size = st.slider('Bin size', min_value=0.005,
                          max_value=0.1, value=0.01, step=0.005, format='percent')
 
-raw = get_data()
+raw = st.session_state.price
+
+if len(raw) == 0:
+    st.info('Search a fund, benchmark and risk free rate to continue')
+    st.stop()
+
+
 mask = pd.Series(True, index=raw.index)
 match market:
     case 'Up':
@@ -49,15 +62,26 @@ df = df.loc[df['Series'] != 'Rfr']
 perf = pd.Series({
     'Annualized Return': ftk.compound_return(fund, annualize=True),
     'Cumulative Return': ftk.compound_return(fund, annualize=False),
+    'Growth of $100': 100 * (1 + ftk.compound_return(fund, annualize=False)),
+    'Observations': fund.count(),
+    'Number of Positive Periods': fund[fund >= 0].count(),
+    'Number of Negative Periods': fund[fund < 0].count(),
     'Average Return': ftk.arithmetic_mean(fund),
     'Average Positive Return': ftk.avg_pos(fund),
     'Average Negative Return': ftk.avg_neg(fund),
-    'Observations': fund.count(),
     'Best Period': ftk.best_period(fund),
     'Worst Period': ftk.worst_period(fund),
-    'Annualized Excess Return': ftk.active_return(fund, benchmark, annualize=True),
+    'Max Consecutive Gain Return': ftk.max_consecutive_gain(fund),
+    'Max Consecutive Loss Return': ftk.max_consecutive_loss(fund),
+    'Number of Consecutive Positive Periods': ftk.consecutive_positive_periods(fund),
+    'Number of Consecutive Negative Periods': ftk.consecutive_negative_periods(fund),
     'Cumulative Excess Return': ftk.active_return(fund, benchmark, annualize=False),
-}).to_frame(name='').style.format("{:.2%}")
+    'Annualized Excess Return': ftk.active_return(fund, benchmark, annualize=True),
+    'Excess Returns - Geometric': ftk.excess_return_geometric(fund, benchmark),
+    'Periods Above Benchmark': (fund - benchmark > 0).sum(),
+    'Percentage Above Benchmark': (fund - benchmark > 0).mean(),
+    'Percent Profitable Periods': (fund > 0).mean()
+}).to_frame(name='').style.format('{:.2%}')
 perf.index.name = 'Performance'
 
 risk = pd.Series({
@@ -65,8 +89,15 @@ risk = pd.Series({
     'Annualized Variance': ftk.variance(fund, annualize=True),
     'Skewness': ftk.skew(fund),
     'Excess Kurtosis': ftk.kurt(fund),
+    'Jarque-Bera': ftk.jarque_bera(fund),
     'Max Drawdown': ftk.worst_drawdown(fund),
     'Average Drawdown': ftk.all_drawdown(fund).mean(),
+    'Current Drawdown': ftk.current_drawdown(fund),
+    'Semi Deviation': ftk.semi_deviation(fund),
+    'Gain Deviation (MAR)': ftk.downside_risk(-fund, 0, annualize=True),
+    'Loss Deviation': ftk.downside_risk(fund, rfr, ddof=0, annualize=True),
+    'Bias Ratio': ftk.bias_ratio(fund),
+    'Gain/Loss Ratio': ftk.gain_loss(fund),
 }).to_frame(name='').style.format("{:.2%}")
 risk.index.name = 'Risk'
 
@@ -79,22 +110,34 @@ var.index.name = 'Value at Risk'
 
 regression = pd.Series({
     'Beta': ftk.beta(fund, benchmark),
+    'Beta T-Stat': ftk.beta_t_stat(fund, benchmark),
     'Beta (Rfr Adjusted)': ftk.beta(fund - rfr, benchmark - rfr),
+    'Alpha (Annualized)': ftk.alpha(fund, benchmark, annualize=True, legacy=True),
+    'Jensen Alpha': ftk.alpha(fund, benchmark, rfr, annualize=True, legacy=True),
     'Correlation': ftk.correlation(pd.concat([fund, benchmark], axis=1)).iloc[0, -1],
     'R²': ftk.rsquared(fund, benchmark),
-    # 'Annualized Alpha': ftk.alpha(fund, benchmark, annualize=True),
-    # 'Jensen''s Alpha': ftk.alpha(fund - rfr, benchmark - rfr, annualize=True),
+    'Standard Error of Regression': ftk.ser(fund, benchmark),
     'Autocorrelation': ftk.correlation(pd.concat([fund.iloc[1:], fund.iloc[1:].shift(-1)], axis=1)).iloc[0, -1],
 }).to_frame(name='').style.format("{:.2%}")
 regression.index.name = 'Regression'
 
 efficiency = pd.Series({
-    'Tracking Error': ftk.tracking_error(fund, benchmark, annualize=True),
-    'Information Ratio': ftk.information_ratio(fund, benchmark),
+    'Sharpe Ratio': ftk.sharpe(fund, rfr),
+    'Reward to Risk Ratio': ftk.reward_to_risk(fund),
+    'Treynor Ratio': ftk.treynor(fund, benchmark, rfr),
+    'Sortino Ratio': ftk.sortino(fund, rfr),
+    'Sterling Ratio': ftk.sterling_modified(fund),
+    'Calmar Ratio': ftk.calmar(fund),
+    'Up Market Return': ftk.up_market_return(fund, benchmark),
+    'Down Market Return': ftk.down_market_return(fund, benchmark),
     'Up Capture': ftk.up_capture(fund, benchmark),
     'Down Capture': ftk.down_capture(fund, benchmark),
-    'Sortino Ratio': ftk.sortino(fund),
-    'Calmar Ratio': ftk.calmar(fund),
+    'Tracking Error': ftk.tracking_error(fund, benchmark, annualize=True),
+    'Information Ratio': ftk.information_ratio(fund, benchmark),
+    'Batting Average': ftk.batting_average(fund, benchmark),
+    'Up Period Batting Average': ftk.up_batting_average(fund, benchmark),
+    'Down Market Batting Average': ftk.down_batting_average(fund, benchmark),
+    'Rolling Batting Average': ftk.rolling_batting_average(fund, benchmark),
 }).to_frame(name='').style.format("{:.2%}")
 efficiency.index.name = 'Efficiency'
 

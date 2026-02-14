@@ -11,12 +11,13 @@ pages = {
     "Analysis": [
         st.Page("performance.py", title="Performance & Risk"),
         st.Page("portfolio.py", title="Portfolio Optimization"),
-        st.Page("factors.py", title="Factor"),
+        st.Page("factors.py", title="Factor Exposure"),
         st.Page("peers.py", title="Peer Group"),
     ],
     "Model": [
         st.Page("options.py", title="Options"),
         st.Page("alm.py", title="Yield Curve"),
+        st.Page("linking.py", title="Multi-Period Linking"),
     ],
 }
 
