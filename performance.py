@@ -8,7 +8,8 @@ import utils
 
 @st.cache_data(ttl=3600)
 def get_data(tickers) -> pd.DataFrame:
-    data = ftk.get_yahoo_bulk(tickers)
+    data = ftk.get_yahoo_bulk(tickers).reindex(
+        columns=[t.upper() for t in tickers])
     data = data.resample('ME').last()
     data.iloc[:, :2] = data.iloc[:, :2].pct_change()
     data.iloc[:, 2] = data.iloc[:, 2] / 12 / 100
