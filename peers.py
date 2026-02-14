@@ -3,6 +3,7 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 import toolkit as ftk
+import utils
 
 
 @st.cache_data(ttl=3600)
@@ -21,14 +22,6 @@ def get_rolling(df, annualize):
 
 def get_table(df, period):
     return (df.resample(period).aggregate(ftk.compound_return).T).style.format('{0:,.2%}').highlight_max(color='lightgreen')
-
-
-def format_table(s):
-    tbl = s.groupby([(s.index.year), (s.index.month)]).sum()
-    tbl = tbl.unstack(level=1).sort_index(ascending=False)
-    tbl.columns = [calendar.month_abbr[m] for m in range(1, 13)]
-    tbl['YTD'] = tbl.agg(ftk.compound_return, axis=1)
-    return tbl.style.format('{0:.2%}')
 
 
 # Pre-process the data
@@ -137,7 +130,7 @@ with category_tabs[3]:
 with category_tabs[4]:
     tabs = st.tabs(list(fund_n_bm.columns))
     for i, tab in enumerate(tabs):
-        tab.write(format_table(fund_n_bm.iloc[:, i]))
+        tab.write(utils.format_table(fund_n_bm.iloc[:, i]))
 
 st.header('Risk')
 st.write(summary.style.highlight_max(color='lightgreen'))

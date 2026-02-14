@@ -1,17 +1,17 @@
-import streamlit as st
-import altair as alt
 import numpy as np
 import pandas as pd
+import streamlit as st
+import altair as alt
 import toolkit as ftk
+import utils
 
 
 @st.cache_data(ttl=3600)
 def get_data(tickers) -> pd.DataFrame:
     data = ftk.get_yahoo_bulk(tickers)
     data = data.resample('ME').last()
-    data.columns = ['Fund', 'Benchmark', 'Rfr']
-    data[['Fund', 'Benchmark']] = data[['Fund', 'Benchmark']].pct_change()
-    data['Rfr'] = data['Rfr'] / 12 / 100
+    data.iloc[:, :2] = data.iloc[:, :2].pct_change()
+    data.iloc[:, 2] = data.iloc[:, 2] / 12 / 100
     data.index = data.index.to_period('M')
     return data.dropna()
 
@@ -56,7 +56,6 @@ with st.sidebar:
                          max_value=0.1, value=0.01, step=0.005, format='percent')
 
 raw = st.session_state.price
-
 if len(raw) == 0:
     st.info('Search a fund, benchmark and risk free rate to continue')
     st.stop()
@@ -73,9 +72,9 @@ if horizon == 'Custom':
     data = data.loc[date_range[0]:date_range[1]]
 
 # Series
-fund = data['Fund']
-benchmark = data['Benchmark']
-rfr = data['Rfr']
+fund = data.iloc[:, 0]
+benchmark = data.iloc[:, 1]
+rfr = data.iloc[:, 2]
 
 data = data[show]
 
@@ -200,3 +199,7 @@ with col2:
 with col3:
     st.dataframe(regression)
     st.dataframe(efficiency)
+
+with st.expander('Table', expanded=True):
+    for i, tab in enumerate(st.tabs(list(raw.columns))):
+        tab.dataframe(utils.format_table(raw.iloc[:, i]))
