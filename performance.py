@@ -182,12 +182,6 @@ measures = {
 measure = st.pills('Measure', measures.keys(),
                    default=list(measures.keys())[0])
 
-
-# vami = ftk.return_to_price(data)
-# vami.index.name = 'Date'
-# vami = vami.reset_index().melt(id_vars='Date', var_name='Series', value_name='Return')
-# vami['Return'] = vami['Return'] - 1
-
 match window:
     case "Rolling":
         line_data = data.rolling(12)
