@@ -214,14 +214,11 @@ measure_options = {
     'Autocorrelation': ftk.autocorrelation,
     'Drawdown': ftk.current_drawdown,
     'Risk Reward': ftk.reward_to_risk,
-
-    # TODO: Fix annualize
-    'Sharpe': lambda x: ftk.sharpe(x, rfr.reindex(x.index), annualize=True),
+    'Sharpe': lambda x: ftk.sharpe(x, rfr.reindex(x.index), annualize=annualize),
     'Tracking Error': lambda x: ftk.tracking_error(x, benchmark.reindex(x.index), annualize=annualize),
-    # TODO: cannot convert the series to <class 'float'>
     'Beta': lambda x: ftk.beta(x, benchmark.reindex(x.index)),
 }
-measure_selected = st.multiselect('Measure', measure_options.keys(),
+measure_selected = st.multiselect('Measure', sorted(measure_options.keys()),
                                   default=['Return', 'Volatility'])
 measures = {k: v
             for k, v in measure_options.items() if k in measure_selected}
