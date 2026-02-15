@@ -213,10 +213,10 @@ try:
         x=alt.X('Date:T', title='Date', axis=alt.Axis(format='%Y-%m')),
         y=alt.Y('Value', title='Measure', axis=alt.Axis(format='%')),
         color=alt.Color('Measure', legend=alt.Legend(orient='top', title=None))
-        if grouping == 'Measure' else
+        if grouping == 'Security' else
         alt.Color('Series', scale=alt.Scale(domain=raw.columns),
                   legend=alt.Legend(orient='top', title=None))
-    ).facet(column=alt.Column('Series' if grouping == 'Measure' else 'Measure', header=alt.Header(
+    ).facet(column=alt.Column('Series' if grouping == 'Security' else 'Measure', header=alt.Header(
         title=None
     )))
     st.altair_chart(line)
