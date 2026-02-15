@@ -44,6 +44,8 @@ with st.sidebar:
             'Window', ['Cumulative', 'Trailing', 'Rolling'], default='Cumulative')
         if window == 'Rolling':
             size = st.slider('Window Size (Months)', 6, 120, value=36, step=6)
+        grouping = st.segmented_control(
+            'Group by', ['Measure', 'Security'], default='Measure')
 
     show = st.segmented_control(
         'Show', st.session_state.price.columns, default=st.session_state.price.columns[:2], selection_mode='multi')
@@ -210,9 +212,11 @@ try:
     line = alt.Chart(line_data).mark_line().encode(
         x=alt.X('Date:T', title='Date', axis=alt.Axis(format='%Y-%m')),
         y=alt.Y('Value', title='Measure', axis=alt.Axis(format='%')),
-        color=alt.Color('Series', scale=alt.Scale(
-            domain=raw.columns), legend=alt.Legend(orient='top', title=None))
-    ).facet(column=alt.Column('Measure', header=alt.Header(
+        color=alt.Color('Measure', legend=alt.Legend(orient='top', title=None))
+        if grouping == 'Measure' else
+        alt.Color('Series', scale=alt.Scale(domain=raw.columns),
+                  legend=alt.Legend(orient='top', title=None))
+    ).facet(column=alt.Column('Series' if grouping == 'Measure' else 'Measure', header=alt.Header(
         title=None
     )))
     st.altair_chart(line)
