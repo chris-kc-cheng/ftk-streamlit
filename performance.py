@@ -38,6 +38,12 @@ with st.sidebar:
         if submitted:
             st.session_state.price = get_data([f, b, r])
 
+    annualize = st.toggle('Annualize', value=False)
+    window = st.segmented_control(
+        'Window', ['Cumulative', 'Trailing', 'Rolling'], default='Cumulative')
+    if window == 'Rolling':
+        size = st.slider('Window Size (Months)', 6, 120, value=36, step=6)
+
     show = st.segmented_control(
         'Show', st.session_state.price.columns, default=st.session_state.price.columns[:2], selection_mode='multi')
     horizon = st.segmented_control(
@@ -64,9 +70,9 @@ if len(raw) == 0:
 market_mask = pd.Series(True, index=raw.index)
 match market:
     case 'Up':
-        market_mask = raw['Fund'] >= 0
+        market_mask = raw.iloc[:, 0] >= 0
     case 'Down':
-        market_mask = raw['Fund'] < 0
+        market_mask = raw.iloc[:, 0] < 0
 horizon_mask = -horizons[horizon] if horizon in horizons else None
 data = raw[market_mask].iloc[horizon_mask:]
 if horizon == 'Custom':
@@ -168,17 +174,36 @@ efficiency.index.name = 'Efficiency'
 
 st.title('Performance and Risk Analysis')
 
-vami = ftk.return_to_price(data)
-vami.index.name = 'Date'
-vami = vami.reset_index().melt(id_vars='Date', var_name='Series', value_name='Return')
-vami['Return'] = vami['Return'] - 1
-line = alt.Chart(vami).mark_line().encode(
-    x='Date',
-    y=alt.Y('Return', title='Cumulative Return', axis=alt.Axis(format='%')),
+
+measures = {
+    'Return': lambda x: ftk.compound_return(x, annualize),
+    'Underwater': ftk.current_drawdown
+}
+measure = st.pills('Measure', measures.keys(),
+                   default=list(measures.keys())[0])
+
+
+# vami = ftk.return_to_price(data)
+# vami.index.name = 'Date'
+# vami = vami.reset_index().melt(id_vars='Date', var_name='Series', value_name='Return')
+# vami['Return'] = vami['Return'] - 1
+
+match window:
+    case "Rolling":
+        line_data = data.rolling(12)
+    case "Trailing":
+        line_data = data[::-1].expanding()
+    case _:
+        line_data = data.expanding()
+line_data = line_data.apply(measures[measure]).reset_index().melt(
+    id_vars='Date', var_name='Series', value_name='Measure')
+line_data['Date'] = line_data['Date'].dt.to_timestamp()
+line = alt.Chart(line_data).mark_line().encode(
+    x=alt.X('Date:T', title='Date', axis=alt.Axis(format='%Y-%m')),
+    y=alt.Y('Measure', title='Measure', axis=alt.Axis(format='%')),
     color=alt.Color('Series', scale=alt.Scale(
         domain=raw.columns), legend=alt.Legend(orient='top', title=None))
 )
-line
 
 histogram = alt.Chart(df).mark_bar().encode(
     alt.X('Return', bin=alt.Bin(step=bin_size), axis=alt.Axis(format='%')),
@@ -187,7 +212,9 @@ histogram = alt.Chart(df).mark_bar().encode(
 ).facet(column=alt.Column('Series', sort=raw.columns, header=alt.Header(
     title=None
 )))
-histogram
+
+st.altair_chart(line)
+st.altair_chart(histogram)
 
 col1, col2, col3 = st.columns(3)
 
