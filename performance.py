@@ -25,15 +25,16 @@ horizons = {
     'All': 0
 }
 
+sample = ['FCNTX', '^GSPC', '^IRX']
 
 if 'price' not in st.session_state:
-    st.session_state.price = pd.DataFrame()
+    st.session_state.price = get_data(sample)
 
 with st.sidebar:
     with st.form("my_form"):
-        f = st.text_input('Fund / Stock', value='FCNTX')
-        b = st.text_input('Benchmark', value='^GSPC')
-        r = st.text_input('Risk-free rate', value='^IRX')
+        f = st.text_input('Fund / Stock', value=sample[0])
+        b = st.text_input('Benchmark', value=sample[1])
+        r = st.text_input('Risk-free rate', value=sample[2])
         submitted = st.form_submit_button('Search')
         if submitted:
             st.session_state.price = get_data([f, b, r])
@@ -47,23 +48,24 @@ with st.sidebar:
         grouping = st.segmented_control(
             'Group by', ['Measure', 'Security'], default='Measure')
 
-    show = st.segmented_control(
-        'Show', st.session_state.price.columns, default=st.session_state.price.columns[:2], selection_mode='multi')
-    horizon = st.segmented_control(
-        'Time Horizon', ['1Y', '3Y', '5Y', '10Y', 'All', 'Custom'], default='10Y')
-    if horizon == 'Custom':
-        date_range = st.select_slider(
-            'Date Range',
-            options=st.session_state.price.index,
-            value=(st.session_state.price.index[0],
-                   st.session_state.price.index[-1]),
-            format_func=lambda d: d.strftime('%Y-%m-%d'))
-    market = st.segmented_control(
-        'Market', ['All', 'Up', 'Down'], default='All')
-    ci = st.slider('Confidence interval', min_value=0.9,
-                   max_value=0.995, value=0.95, step=0.005, format='percent')
-    bin_size = st.slider('Bin size', min_value=0.005,
-                         max_value=0.1, value=0.01, step=0.005, format='percent')
+    with st.container(border=True):
+        show = st.segmented_control(
+            'Show', st.session_state.price.columns, default=st.session_state.price.columns[:2], selection_mode='multi')
+        horizon = st.segmented_control(
+            'Time Horizon', ['1Y', '3Y', '5Y', '10Y', 'All', 'Custom'], default='10Y')
+        if horizon == 'Custom':
+            date_range = st.select_slider(
+                'Date Range',
+                options=st.session_state.price.index,
+                value=(st.session_state.price.index[0],
+                       st.session_state.price.index[-1]),
+                format_func=lambda d: d.strftime('%Y-%m-%d'))
+        market = st.segmented_control(
+            'Market', ['All', 'Up', 'Down'], default='All')
+        ci = st.slider('Confidence interval', min_value=0.9,
+                       max_value=0.995, value=0.95, step=0.005, format='percent')
+        bin_size = st.slider('Bin size', min_value=0.005,
+                             max_value=0.1, value=0.01, step=0.005, format='percent')
 
 raw = st.session_state.price
 if len(raw) == 0:
@@ -87,10 +89,6 @@ benchmark = data.iloc[:, 1]
 rfr = data.iloc[:, 2]
 
 data = data[show]
-
-# Long format without Rfr
-df = data
-df = df.melt(var_name='Series', value_name='Return')
 
 perf = pd.Series({
     'Annualized Return': ftk.compound_return(fund, annualize=True),
@@ -177,7 +175,6 @@ efficiency.index.name = 'Efficiency'
 
 st.title('Performance and Risk Analysis')
 
-
 measure_options = {
     'Return': lambda x: ftk.compound_return(x, annualize),
     'Volatility': lambda x: ftk.volatility(x, annualize),
@@ -185,7 +182,13 @@ measure_options = {
     'CVaR': lambda x: ftk.cvar_normal(x, 1-ci),
     'Autocorrelation': ftk.autocorrelation,
     'Drawdown': ftk.current_drawdown,
-    'Risk Reward': ftk.reward_to_risk
+    'Risk Reward': ftk.reward_to_risk,
+
+    # TODO: Fix annualize
+    'Sharpe': lambda x: ftk.sharpe(x, rfr.reindex(x.index), annualize=True),
+    'Tracking Error': lambda x: ftk.tracking_error(x, benchmark.reindex(x.index), annualize=annualize),
+    # TODO: cannot convert the series to <class 'float'>
+    'Beta': lambda x: ftk.beta(x, benchmark.reindex(x.index)),
 }
 measure_selected = st.pills('Measure', measure_options.keys(),
                             default=['Return', 'Volatility'], selection_mode='multi')
@@ -194,36 +197,40 @@ measures = {k: v
 
 match window:
     case "Rolling":
-        line_data = data.rolling(12)
+        line_data = data.rolling(size)
     case "Trailing":
-        line_data = data[::-1].expanding()
-    case _:
-        line_data = data.expanding()
+        line_data = data[::-1].expanding(min_periods=12)
+    case _:  # Cumulative
+        line_data = data.expanding(min_periods=12)
 
-try:
-    line_data = pd.concat({
-        label: line_data.apply(func)
-        for label, func in measures.items()
-    })
-    line_data.index.names = ['Measure', 'Date']
-    line_data = line_data.reset_index().melt(
-        id_vars=['Measure', 'Date'], var_name='Series', value_name='Value')
-    line_data['Date'] = line_data['Date'].dt.to_timestamp()
-    line = alt.Chart(line_data).mark_line().encode(
-        x=alt.X('Date:T', title='Date', axis=alt.Axis(format='%Y-%m')),
-        y=alt.Y('Value', title='Measure', axis=alt.Axis(format='%')),
-        color=alt.Color('Measure', legend=alt.Legend(orient='top', title=None))
-        if grouping == 'Security' else
-        alt.Color('Series', scale=alt.Scale(domain=raw.columns),
-                  legend=alt.Legend(orient='top', title=None))
-    ).facet(column=alt.Column('Series' if grouping == 'Security' else 'Measure', header=alt.Header(
-        title=None
-    )))
-    st.altair_chart(line)
-except:
-    st.warning('Select at least one measure')
+# try:
+line_data = pd.concat({
+    label: line_data.apply(func)
+    for label, func in measures.items()
+})
+line_data.index.names = ['Measure', 'Date']
+line_data = line_data.reset_index().melt(
+    id_vars=['Measure', 'Date'], var_name='Series', value_name='Value')
+line_data['Date'] = line_data['Date'].dt.to_timestamp()
+line = alt.Chart(line_data).mark_line().encode(
+    x=alt.X('Date:T', title='Date', axis=alt.Axis(format='%Y-%m')),
+    y=alt.Y('Value', title='Measure', axis=alt.Axis(format='%')),
+    color=alt.Color('Measure', legend=alt.Legend(orient='top', title=None))
+    if grouping == 'Security' else
+    alt.Color('Series', scale=alt.Scale(domain=raw.columns),
+              legend=alt.Legend(orient='top', title=None))
+).facet(column=alt.Column('Series' if grouping == 'Security' else 'Measure', header=alt.Header(
+    title=None
+)))
+st.altair_chart(line)
+# except:
+#    st.warning('Select at least one measure')
 
-histogram = alt.Chart(df).mark_bar().encode(
+# Long format without Rfr
+histogram_data = data
+histogram_data = histogram_data.melt(var_name='Series', value_name='Return')
+
+histogram = alt.Chart(histogram_data).mark_bar().encode(
     alt.X('Return', bin=alt.Bin(step=bin_size), axis=alt.Axis(format='%')),
     alt.Y('count()', title='Count', stack=None),
     color=alt.Color('Series', scale=alt.Scale(domain=raw.columns))
@@ -233,9 +240,11 @@ histogram = alt.Chart(df).mark_bar().encode(
 
 st.altair_chart(histogram)
 
+# Tables
 col1, col2, col3 = st.columns(3)
 
-col1.dataframe(perf)
+with col1:
+    st.dataframe(perf)
 
 with col2:
     st.dataframe(risk)
