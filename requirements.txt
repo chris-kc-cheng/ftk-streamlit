@@ -2,3 +2,4 @@ streamlit
 yfinance
 fintoolkit
 xlrd
+openpyxl

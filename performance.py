@@ -26,20 +26,51 @@ horizons = {
 }
 
 sample = ['FCNTX', '^GSPC', '^IRX']
+universe = None
 
 if 'price' not in st.session_state:
     st.session_state.price = get_data(sample)
 
 with st.sidebar:
-    with st.form("my_form"):
-        f = st.text_input('Fund / Stock', value=sample[0])
-        b = st.text_input('Benchmark', value=sample[1])
-        r = st.text_input('Risk-free rate', value=sample[2])
-        submitted = st.form_submit_button('Search')
-        if submitted:
-            st.session_state.price = get_data([f, b, r])
 
-    with st.container(border=True):
+    with st.expander('Public Security', expanded=True):
+        with st.form('public_form', border=False):
+            f = st.text_input('Fund / Stock', value=sample[0])
+            b = st.text_input('Benchmark', value=sample[1])
+            r = st.text_input('Risk-free rate', value=sample[2])
+            submitted = st.form_submit_button('Search')
+            if submitted:
+                st.session_state.price = get_data([f, b, r])
+
+    with st.expander('Proprietary Data', expanded=True):
+        uploaded_file = st.file_uploader('Data File', type=['csv', 'xlsx'])
+        if uploaded_file is not None:
+
+            if uploaded_file.name.split('.')[-1] == 'csv':
+                df = pd.read_csv(uploaded_file, header=0, index_col=0)
+            else:
+                df = pd.read_excel(uploaded_file, header=0, index_col=0)
+
+            df.index = pd.to_datetime(df.index).to_period('M')
+            df.index.name = 'Date'
+            periods, securities = df.shape
+            st.toast(
+                f'Loaded {securities} securities and {periods} periods', icon='✅')
+            universe = df
+
+            securities = sorted(universe.columns)
+            f = st.selectbox('Fund', securities,
+                             index=securities.index(universe.columns[0]))
+            b = st.selectbox('Benchmark', securities,
+                             index=securities.index(universe.columns[1]))
+            r = st.selectbox('Risk-free rate', securities,
+                             index=securities.index(universe.columns[2]))
+            with st.form('private_form', border=False):
+                submitted = st.form_submit_button('Run')
+                if submitted:
+                    st.session_state.price = universe[[f, b, r]]
+
+    with st.expander('Line Chart', expanded=True):
         annualize = st.toggle('Annualize', value=False)
         window = st.segmented_control(
             'Window', ['Cumulative', 'Trailing', 'Rolling'], default='Cumulative')
@@ -48,7 +79,7 @@ with st.sidebar:
         grouping = st.segmented_control(
             'Group by', ['Measure', 'Security'], default='Measure')
 
-    with st.container(border=True):
+    with st.expander('Page Setting', expanded=True):
         show = st.segmented_control(
             'Show', st.session_state.price.columns, default=st.session_state.price.columns[:2], selection_mode='multi')
         horizon = st.segmented_control(
