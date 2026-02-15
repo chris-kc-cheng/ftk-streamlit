@@ -190,8 +190,8 @@ measure_options = {
     # TODO: cannot convert the series to <class 'float'>
     'Beta': lambda x: ftk.beta(x, benchmark.reindex(x.index)),
 }
-measure_selected = st.pills('Measure', measure_options.keys(),
-                            default=['Return', 'Volatility'], selection_mode='multi')
+measure_selected = st.multiselect('Measure', measure_options.keys(),
+                                  default=['Return', 'Volatility'])
 measures = {k: v
             for k, v in measure_options.items() if k in measure_selected}
 
@@ -203,28 +203,28 @@ match window:
     case _:  # Cumulative
         line_data = data.expanding(min_periods=12)
 
-# try:
-line_data = pd.concat({
-    label: line_data.apply(func)
-    for label, func in measures.items()
-})
-line_data.index.names = ['Measure', 'Date']
-line_data = line_data.reset_index().melt(
-    id_vars=['Measure', 'Date'], var_name='Series', value_name='Value')
-line_data['Date'] = line_data['Date'].dt.to_timestamp()
-line = alt.Chart(line_data).mark_line().encode(
-    x=alt.X('Date:T', title='Date', axis=alt.Axis(format='%Y-%m')),
-    y=alt.Y('Value', title='Measure', axis=alt.Axis(format='%')),
-    color=alt.Color('Measure', legend=alt.Legend(orient='top', title=None))
-    if grouping == 'Security' else
-    alt.Color('Series', scale=alt.Scale(domain=raw.columns),
-              legend=alt.Legend(orient='top', title=None))
-).facet(column=alt.Column('Series' if grouping == 'Security' else 'Measure', header=alt.Header(
-    title=None
-)))
-st.altair_chart(line)
-# except:
-#    st.warning('Select at least one measure')
+try:
+    line_data = pd.concat({
+        label: line_data.apply(func)
+        for label, func in measures.items()
+    })
+    line_data.index.names = ['Measure', 'Date']
+    line_data = line_data.reset_index().melt(
+        id_vars=['Measure', 'Date'], var_name='Series', value_name='Value')
+    line_data['Date'] = line_data['Date'].dt.to_timestamp()
+    line = alt.Chart(line_data).mark_line().encode(
+        x=alt.X('Date:T', title='Date', axis=alt.Axis(format='%Y-%m')),
+        y=alt.Y('Value', title='Measure', axis=alt.Axis(format='%')),
+        color=alt.Color('Measure', legend=alt.Legend(orient='top', title=None))
+        if grouping == 'Security' else
+        alt.Color('Series', scale=alt.Scale(domain=raw.columns),
+                  legend=alt.Legend(orient='top', title=None))
+    ).facet(column=alt.Column('Series' if grouping == 'Security' else 'Measure', header=alt.Header(
+        title=None
+    )))
+    st.altair_chart(line)
+except:
+    st.warning('Select at least one measure')
 
 # Long format without Rfr
 histogram_data = data
@@ -234,9 +234,11 @@ histogram = alt.Chart(histogram_data).mark_bar().encode(
     alt.X('Return', bin=alt.Bin(step=bin_size), axis=alt.Axis(format='%')),
     alt.Y('count()', title='Count', stack=None),
     color=alt.Color('Series', scale=alt.Scale(domain=raw.columns))
-).facet(column=alt.Column('Series', sort=raw.columns, header=alt.Header(
-    title=None
-)))
+).facet(
+    column=alt.Column('Series', sort=raw.columns, header=alt.Header(
+        title=None)),
+    columns=3
+)
 
 st.altair_chart(histogram)
 
