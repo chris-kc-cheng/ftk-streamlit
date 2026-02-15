@@ -38,11 +38,12 @@ with st.sidebar:
         if submitted:
             st.session_state.price = get_data([f, b, r])
 
-    annualize = st.toggle('Annualize', value=False)
-    window = st.segmented_control(
-        'Window', ['Cumulative', 'Trailing', 'Rolling'], default='Cumulative')
-    if window == 'Rolling':
-        size = st.slider('Window Size (Months)', 6, 120, value=36, step=6)
+    with st.container(border=True):
+        annualize = st.toggle('Annualize', value=False)
+        window = st.segmented_control(
+            'Window', ['Cumulative', 'Trailing', 'Rolling'], default='Cumulative')
+        if window == 'Rolling':
+            size = st.slider('Window Size (Months)', 6, 120, value=36, step=6)
 
     show = st.segmented_control(
         'Show', st.session_state.price.columns, default=st.session_state.price.columns[:2], selection_mode='multi')
@@ -175,12 +176,19 @@ efficiency.index.name = 'Efficiency'
 st.title('Performance and Risk Analysis')
 
 
-measures = {
+measure_options = {
     'Return': lambda x: ftk.compound_return(x, annualize),
-    'Underwater': ftk.current_drawdown
+    'Volatility': lambda x: ftk.volatility(x, annualize),
+    'VaR': lambda x: ftk.var_normal(x, 1-ci),
+    'CVaR': lambda x: ftk.cvar_normal(x, 1-ci),
+    'Autocorrelation': ftk.autocorrelation,
+    'Drawdown': ftk.current_drawdown,
+    'Risk Reward': ftk.reward_to_risk
 }
-measure = st.pills('Measure', measures.keys(),
-                   default=list(measures.keys())[0])
+measure_selected = st.pills('Measure', measure_options.keys(),
+                            default=['Return', 'Volatility'], selection_mode='multi')
+measures = {k: v
+            for k, v in measure_options.items() if k in measure_selected}
 
 match window:
     case "Rolling":
@@ -189,15 +197,27 @@ match window:
         line_data = data[::-1].expanding()
     case _:
         line_data = data.expanding()
-line_data = line_data.apply(measures[measure]).reset_index().melt(
-    id_vars='Date', var_name='Series', value_name='Measure')
-line_data['Date'] = line_data['Date'].dt.to_timestamp()
-line = alt.Chart(line_data).mark_line().encode(
-    x=alt.X('Date:T', title='Date', axis=alt.Axis(format='%Y-%m')),
-    y=alt.Y('Measure', title='Measure', axis=alt.Axis(format='%')),
-    color=alt.Color('Series', scale=alt.Scale(
-        domain=raw.columns), legend=alt.Legend(orient='top', title=None))
-)
+
+try:
+    line_data = pd.concat({
+        label: line_data.apply(func)
+        for label, func in measures.items()
+    })
+    line_data.index.names = ['Measure', 'Date']
+    line_data = line_data.reset_index().melt(
+        id_vars=['Measure', 'Date'], var_name='Series', value_name='Value')
+    line_data['Date'] = line_data['Date'].dt.to_timestamp()
+    line = alt.Chart(line_data).mark_line().encode(
+        x=alt.X('Date:T', title='Date', axis=alt.Axis(format='%Y-%m')),
+        y=alt.Y('Value', title='Measure', axis=alt.Axis(format='%')),
+        color=alt.Color('Series', scale=alt.Scale(
+            domain=raw.columns), legend=alt.Legend(orient='top', title=None))
+    ).facet(column=alt.Column('Measure', header=alt.Header(
+        title=None
+    )))
+    st.altair_chart(line)
+except:
+    st.warning('Select at least one measure')
 
 histogram = alt.Chart(df).mark_bar().encode(
     alt.X('Return', bin=alt.Bin(step=bin_size), axis=alt.Axis(format='%')),
@@ -207,7 +227,6 @@ histogram = alt.Chart(df).mark_bar().encode(
     title=None
 )))
 
-st.altair_chart(line)
 st.altair_chart(histogram)
 
 col1, col2, col3 = st.columns(3)
