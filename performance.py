@@ -277,15 +277,15 @@ st.altair_chart(histogram)
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.dataframe(perf)
+    st.table(perf)
 
 with col2:
-    st.dataframe(risk)
-    st.dataframe(var)
+    st.table(risk)
+    st.table(var)
 
 with col3:
-    st.dataframe(regression)
-    st.dataframe(efficiency)
+    st.table(regression)
+    st.table(efficiency)
 
 with st.expander('Table', expanded=True):
     for i, tab in enumerate(st.tabs(list(raw.columns))):
