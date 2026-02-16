@@ -21,6 +21,18 @@ pages = {
     ],
 }
 
-st.set_page_config(page_title="Financial Terminal", layout="wide")
+st.set_page_config(
+    page_title="Financial Terminal",
+    page_icon=":material/terminal:",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        "Get Help": "https://chris-kc-cheng.github.io/financial-toolkit/toolkit.html",
+        "Report a bug": "https://github.com/chris-kc-cheng",
+        "About": "https://www.linkedin.com/in/chris-kc-cheng/"
+    }
+)
+
+
 pg = st.navigation(pages, position="top")
 pg.run()
