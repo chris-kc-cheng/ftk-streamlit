@@ -33,6 +33,6 @@ st.set_page_config(
     }
 )
 
-
+st.logo('images/icon.png', icon_image='images/icon.png', size='large')
 pg = st.navigation(pages, position="top")
 pg.run()

@@ -23,7 +23,6 @@ fx.index = fx.index.date
 
 with st.sidebar:
 
-    st.logo('images/icon.png', icon_image='images/icon.png', size='large')
     from_date, to_date = st.select_slider(
         'Period', options=fx.index, value=(fx.index[-252], fx.index[-1]))
     show = st.segmented_control('Show', ['Quote', 'Change'], default='Quote')
