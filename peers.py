@@ -17,11 +17,11 @@ def get_rolling(df, annualize):
     for i in range(1, n + 1):
         df2[f'{i}Y'] = df.T.iloc[:, -i *
                                  12:].apply(lambda x: ftk.compound_return(x, annualize), axis=1)
-    return (df2.iloc[:, -n:]).style.format('{0:.2%}').highlight_max(color='lightgreen')
+    return (df2.iloc[:, -n:]).style.format('{0:.2%}').highlight_max(color='#69BDBA')
 
 
 def get_table(df, period):
-    return (df.resample(period).aggregate(ftk.compound_return).T).style.format('{0:,.2%}').highlight_max(color='lightgreen')
+    return (df.resample(period).aggregate(ftk.compound_return).T).style.format('{0:,.2%}').highlight_max(color='#69BDBA')
 
 
 # Pre-process the data
@@ -133,6 +133,6 @@ with category_tabs[4]:
         tab.write(utils.format_table(fund_n_bm.iloc[:, i]))
 
 st.header('Risk')
-st.write(summary.style.highlight_max(color='lightgreen'))
+st.write(summary.style.highlight_max(color='#69BDBA'))
 
 st.markdown(open('data/signature.md').read())

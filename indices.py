@@ -103,31 +103,33 @@ for i, group in enumerate(groups):
     with tabs[i]:
         t = table[table.Group == group]
 
-        htabs = st.tabs(horizons)
+        col1, col2 = st.columns(2)
+
+        htabs = col2.tabs(horizons)
         for j, horizon in enumerate(horizons):
             with htabs[j]:
                 c = (alt.Chart(t)
                      .mark_bar()
                      .encode(
-                    alt.X('Name', sort='-y'),
-                    alt.Y(horizon),
-                    alt.Color('Country')
+                    y=alt.X('Name', sort='-x'),
+                    x=alt.Y(horizon),
+                    color=alt.Color('Country')
                 )
                 )
                 st.altair_chart(c)
 
-        st.dataframe(t,
-                     hide_index=True,
-                     column_order=['flag', 'Name', 'MTD',
-                                   'QTD', 'YTD', 'Last', 'As of', 'chart'],
-                     column_config={
-                         'flag': st.column_config.ImageColumn(''),
-                         'MTD': st.column_config.NumberColumn(format='%.2f'),
-                         'QTD': st.column_config.NumberColumn(format='%.2f'),
-                         'YTD': st.column_config.NumberColumn(format='%.2f'),
-                         'Last': st.column_config.NumberColumn(format='%.2f'),
-                         'chart': st.column_config.LineChartColumn(f'Last {lookback} Trading Days'),
-                     })
+        col1.dataframe(t,
+                       hide_index=True,
+                       column_order=['flag', 'Name', 'MTD',
+                                     'QTD', 'YTD', 'Last', 'As of', 'chart'],
+                       column_config={
+                           'flag': st.column_config.ImageColumn(''),
+                           'MTD': st.column_config.NumberColumn(format='%.2f'),
+                           'QTD': st.column_config.NumberColumn(format='%.2f'),
+                           'YTD': st.column_config.NumberColumn(format='%.2f'),
+                           'Last': st.column_config.NumberColumn(format='%.2f'),
+                           'chart': st.column_config.LineChartColumn(f'Last {lookback} Trading Days'),
+                       })
 
 with st.expander('Data', expanded=False):
     st.write(adjusted)
