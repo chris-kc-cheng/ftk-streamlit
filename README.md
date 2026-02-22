@@ -15,7 +15,7 @@ Click the badge below to launch the web app — a lightweight alternative to Blo
 This web application provides time-series analysis of a fund, both on a standalone basis and in comparison with a benchmark. Users can dynamically select and visualize a range of performance and risk metrics across different time horizons and customizable parameters.
 
 <a href="https://terminal.streamlit.app/performance">
-    <img alt='Yield Curve' src='images/performance.png' style='border: none' />
+    <img alt='Performance and Risk Analysis' src='images/performance.gif' style='border: none' />
 </a>
 
 ## App 10: Foreign Exchange
@@ -23,7 +23,7 @@ This web application provides time-series analysis of a fund, both on a standalo
 This web application visualizes cross-currency exchange rates in a heatmap format, displaying real-time quotes and corresponding percentage changes.
 
 <a href="https://terminal.streamlit.app/currency">
-    <img alt='Yield Curve' src='images/currency.png' style='border: none' />
+    <img alt='Currency' src='images/currency.png' style='border: none' />
 </a>
 
 ## App 9: Periodic Table
@@ -31,7 +31,7 @@ This web application visualizes cross-currency exchange rates in a heatmap forma
 This web app displays a periodic-table-style summary of returns across different asset classes and hedge fund strategies. Users can customize the table by selecting different time horizons, adjusting conditional formatting, changing the order, and choosing the reference point.
 
 <a href="https://terminal.streamlit.app/heatmap">
-    <img alt='Yield Curve' src='images/heatmap.gif' style='border: none' />
+    <img alt='Heatmap' src='images/heatmap.gif' style='border: none' />
 </a>
 
 ## App 8: Yield Curve
