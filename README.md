@@ -10,6 +10,14 @@ Click the badge below to launch the web app — a lightweight alternative to Blo
     <img src='https://static.streamlit.io/badges/streamlit_badge_black_white.svg' alt='Play' style='border: none;' />
 </a>
 
+## App 11: Performance & Risk Analysis
+
+This web application provides time-series analysis of a fund, both on a standalone basis and in comparison with a benchmark. Users can dynamically select and visualize a range of performance and risk metrics across different time horizons and customizable parameters.
+
+<a href="https://terminal.streamlit.app/performance">
+    <img alt='Yield Curve' src='images/performance.png' style='border: none' />
+</a>
+
 ## App 10: Foreign Exchange
 
 This web application visualizes cross-currency exchange rates in a heatmap format, displaying real-time quotes and corresponding percentage changes.

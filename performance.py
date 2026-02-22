@@ -97,6 +97,7 @@ with st.sidebar:
                        max_value=0.995, value=0.95, step=0.005, format='percent')
         bin_size = st.slider('Bin size', min_value=0.005,
                              max_value=0.1, value=0.01, step=0.005, format='percent')
+        decimals = st.segmented_control('Decimal Place', range(5), default=2)
 
 raw = st.session_state.price
 if len(raw) == 0:
@@ -143,7 +144,7 @@ perf = pd.Series({
     'Periods Above Benchmark': (fund - benchmark > 0).sum(),
     'Percentage Above Benchmark': (fund - benchmark > 0).mean(),
     'Percent Profitable Periods': (fund > 0).mean()
-}).to_frame(name='').style.format('{:.2%}')
+}).to_frame(name='').style.format(f'{{:.{decimals}%}}').format('${:.2f}', subset=pd.IndexSlice[['Growth of $100'], :]).format('{:,.0f}', subset=pd.IndexSlice[['Observations', 'Number of Positive Periods', 'Number of Negative Periods', 'Number of Consecutive Positive Periods', 'Number of Consecutive Negative Periods', 'Periods Above Benchmark'], :])
 perf.index.name = 'Performance'
 
 risk = pd.Series({
@@ -160,14 +161,14 @@ risk = pd.Series({
     'Loss Deviation': ftk.downside_risk(fund, rfr, ddof=0, annualize=True),
     'Bias Ratio': ftk.bias_ratio(fund),
     'Gain/Loss Ratio': ftk.gain_loss(fund),
-}).to_frame(name='').style.format("{:.2%}")
+}).to_frame(name='').style.format(f'{{:.{decimals}%}}').format(f'{{:.{decimals}f}}', subset=pd.IndexSlice[['Skewness', 'Excess Kurtosis', 'Jarque-Bera', 'Bias Ratio', 'Gain/Loss Ratio'], :])
 risk.index.name = 'Risk'
 
 var = pd.Series({
     'Gaussian VaR': ftk.var_normal(fund, sig=1-ci),
     'Cornish-Fisher VaR': ftk.var_modified(fund, sig=1-ci),
     'Gaussian CVaR': ftk.cvar_normal(fund, sig=1-ci)
-}).to_frame(name='').style.format("{:.2%}")
+}).to_frame(name='').style.format(f'{{:.{decimals}%}}')
 var.index.name = 'Value at Risk'
 
 regression = pd.Series({
@@ -180,7 +181,7 @@ regression = pd.Series({
     'R²': ftk.rsquared(fund, benchmark),
     'Standard Error of Regression': ftk.ser(fund, benchmark),
     'Autocorrelation': ftk.correlation(pd.concat([fund.iloc[1:], fund.iloc[1:].shift(-1)], axis=1)).iloc[0, -1],
-}).to_frame(name='').style.format("{:.2%}")
+}).to_frame(name='').style.format(f'{{:.{decimals}%}}').format(f'{{:.{decimals}f}}', subset=pd.IndexSlice[['Beta', 'Beta T-Stat', 'Beta (Rfr Adjusted)', 'Correlation', 'Standard Error of Regression', 'Autocorrelation'], :])
 regression.index.name = 'Regression'
 
 efficiency = pd.Series({
@@ -200,7 +201,7 @@ efficiency = pd.Series({
     'Up Period Batting Average': ftk.up_batting_average(fund, benchmark),
     'Down Market Batting Average': ftk.down_batting_average(fund, benchmark),
     'Rolling Batting Average': ftk.rolling_batting_average(fund, benchmark),
-}).to_frame(name='').style.format("{:.2%}")
+}).to_frame(name='').style.format(f'{{:.{decimals}%}}').format(f'{{:.{decimals}f}}', subset=pd.IndexSlice[['Sharpe Ratio', 'Reward to Risk Ratio', 'Treynor Ratio', 'Sortino Ratio', 'Sterling Ratio', 'Calmar Ratio', 'Information Ratio'], :])
 efficiency.index.name = 'Efficiency'
 
 
