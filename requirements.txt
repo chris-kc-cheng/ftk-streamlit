@@ -3,3 +3,4 @@ yfinance
 fintoolkit
 xlrd
 openpyxl
+redis

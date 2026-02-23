@@ -3,9 +3,10 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import toolkit as ftk
+from utils import redis_cache
 
 
-@st.cache_data(ttl=3600)
+@redis_cache(ttl=15 * 24 * 60 * 60)
 def get_data(dataset: str) -> pd.DataFrame:
     """Load a dataset
 
