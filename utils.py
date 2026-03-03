@@ -38,6 +38,7 @@ def redis_cache(ttl=3600, namespace="ftk-streamlit"):
                 "args": bound.args,
                 "kwargs": bound.kwargs,
             }
+            print(key_data)
 
             raw_key = json.dumps(key_data, sort_keys=True, default=str)
             hashed = hashlib.sha256(raw_key.encode()).hexdigest()

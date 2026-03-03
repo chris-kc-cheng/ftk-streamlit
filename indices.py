@@ -92,7 +92,7 @@ table['flag'] = table['Country'].apply(lambda c: get_flag(c))
 table['As of'] = table['As of'].apply(
     lambda d: None if pd.isnull(d) else d.strftime('%b %d'))
 
-groups = ['America', 'Asia', 'EMEA', 'Currency']
+groups = ['America', 'Asia', 'EMEA', 'Currency', 'Commodity', 'Crypto']
 horizons = ['MTD', 'QTD', 'YTD']
 
 st.title('Equity Dashboard')

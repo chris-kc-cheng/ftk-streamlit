@@ -46,3 +46,18 @@ IMOEX.ME,EMEA,MOEX Russia,RU,RUB
 ^RUT,America,Russell 2000,US,USD
 ^BVSP,America,IBOVESPA,BR,BRL
 ^MXX,America,IPC Mexico,MX,MXN
+GC=F,Commodity,Gold,US,USD
+SI=F,Commodity,Silver,US,USD
+HG=F,Commodity,Copper,US,USD
+BZ=F,Commodity,Brent Crude Oil,US,USD
+CL=F,Commodity,WTI Crude Oil,US,USD
+HO=F,Commodity,Heating Oil,US,USD
+NG=F,Commodity,Natural Gas,US,USD
+BTC-USD,Crypto,Bitcoin,US,USD
+ETH-USD,Crypto,Ethereum,US,USD
+USDT-USD,Crypto,Tether,US,USD
+USDC-USD,Crypto,USD Coin,US,USD
+SOL-USD,Crypto,Colana,US,USD
+XRP-USD,Crypto,XRP,US,USD
+BNB-USD,Crypto,BNB,US,USD
+DOGE-USD,Crypto,Dogecoin,US,USD
