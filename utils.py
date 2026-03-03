@@ -6,6 +6,7 @@ import inspect
 import json
 import redis
 import os
+from datetime import datetime, timezone
 import streamlit as st
 import toolkit as ftk
 
@@ -38,7 +39,6 @@ def redis_cache(ttl=3600, namespace="ftk-streamlit"):
                 "args": bound.args,
                 "kwargs": bound.kwargs,
             }
-            print(key_data)
 
             raw_key = json.dumps(key_data, sort_keys=True, default=str)
             hashed = hashlib.sha256(raw_key.encode()).hexdigest()
@@ -46,14 +46,21 @@ def redis_cache(ttl=3600, namespace="ftk-streamlit"):
 
             # Try cache
             cached = r.get(redis_key)
+            meta_key = f"{namespace}:meta:{func.__name__}:{hashed}"
             if cached:
+                remaining = r.ttl(redis_key)
+                if remaining > 0:
+                    r.set(meta_key, json.dumps(
+                        key_data, default=str).encode(), nx=True, ex=remaining)
                 return pickle.loads(cached)
 
             # Compute result
             result = func(*args, **kwargs)
 
-            # Store in Redis
+            # Store in Redis (data + readable metadata for cache inspector)
             r.setex(redis_key, ttl, pickle.dumps(result))
+            key_data["cached_at"] = datetime.now(timezone.utc).isoformat()
+            r.setex(meta_key, ttl, json.dumps(key_data, default=str).encode())
             return result
 
         return wrapper

@@ -19,6 +19,9 @@ pages = {
         st.Page("alm.py", title="Yield Curve"),
         st.Page("linking.py", title="Multi-Period Linking"),
     ],
+    "Settings": [
+        st.Page("cache.py", title="Cache Manager"),
+    ],
 }
 
 st.set_page_config(
